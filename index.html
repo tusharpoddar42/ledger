@@ -413,8 +413,19 @@
       <summary><span class="lead"><span class="gi"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18M8 7h5a3 3 0 0 1 0 6H8m0 0h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Currency</span><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
       <div class="foldbody"><p class="note">Only the symbol and number format change — your data stays the same.</p><div class="curgrid" id="curgrid"></div></div>
     </details>
+        <details class="fold reveal d3" id="fold-import">
+      <summary><span class="lead"><span class="gi"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>Import from your sheet</span><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+      <div class="foldbody">
+        <p class="note">Copy rows straight from your Google Sheet and paste them below — it's read <b>on this device only</b>, nothing is sent anywhere. Pick what you're pasting, paste, Import; repeat for each tab. Order: <b>Category Engine</b> first, then Expense Data, then Recurring.</p>
+        <label class="fld" style="margin-top:0"><span class="lab">What are you pasting?</span><span class="selwrap"><select class="tf" id="imp-kind"><option value="rules">Category Engine (Priority · Keyword · Category · Active)</option><option value="expenses">Expense Data (Amount · Description · Month# · Category · MM YY)</option><option value="recurring">Recurring &amp; Amortized (Description · Type · Amount · Start · End · Periods · Category · Monthly)</option></select></span></label>
+        <label class="fld"><span class="lab">Paste rows here</span><textarea class="tf" id="imp-text" rows="5" placeholder="Select the rows in your sheet, copy (Cmd/Ctrl+C), and paste here"></textarea></label>
+        <button class="btn wide" id="imp-go" style="margin-top:12px">Import these rows</button>
+        <button class="btn danger wide" id="imp-clear" style="margin-top:10px">Clear ALL entries (start fresh)</button>
+      </div>
+    </details>
     <details class="fold reveal d3">
-      <summary><span class="lead"><span class="gi"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Backup &amp; transfer</span><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+      <summary><span class="lead"><span class="gi"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Backup &amp; transfer</span>
+<svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
       <div class="foldbody"><p class="note">Export a file to back up or move all your data (income + spending), then import it anywhere. Google Sheets sync can't run inside the app, so this file is how data moves in and out.</p><div class="datarow"><button class="btn" id="expjson"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Export JSON</button><button class="btn ghost" id="expcsv"><svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4zM4 9h16M9 9v11" stroke="currentColor" stroke-width="1.8"/></svg>Export CSV</button></div><div class="datarow" style="margin-top:10px"><button class="btn ghost" id="impbtn"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21V9m0 0l-4 4m4-4l4 4M5 3h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Import from file</button><input type="file" id="impfile" accept=".json,application/json" hidden></div></div>
     </details>
     <p class="foot">Ledger · income &amp; burn · imported from your Google Sheet</p>
@@ -897,6 +908,26 @@
   el("impbtn").addEventListener("click",function(){ el("impfile").click(); });
   el("impfile").addEventListener("change",function(){ if(this.files&&this.files[0]) importFile(this.files[0]); this.value=""; });
   document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&!el("scrim").hidden) showSheet(false); });
+
+
+  /* ---- paste-import from your spreadsheet (runs on device; nothing leaves) ---- */
+  var IMON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  function pRows(t){ return String(t||"").replace(/\r/g,"").split("\n").map(function(l){return l.split("\t");}).filter(function(r){return r.join("").trim()!==""; }); }
+  function pHeader(r){ var s=r.join(" ").toLowerCase(); return /amount|description|keyword|priority|month|type|expense/.test(s) && !/₹|\d{4}/.test(r[0]||""); }
+  function pYM(s){ s=String(s||"").trim(); var m=s.match(/([A-Za-z]{3,})\s+(\d{4})/); if(m){ var mn=m[1].slice(0,3); mn=mn.charAt(0).toUpperCase()+mn.slice(1).toLowerCase(); var i=IMON.indexOf(mn); if(i>-1) return m[2]+"-"+String(i+1).padStart(2,"0"); } var m2=s.match(/(\d{4})[-\/](\d{1,2})/); if(m2) return m2[1]+"-"+String(+m2[2]).padStart(2,"0"); return null; }
+  function pCat(c){ var v=String(c||"").split(/[,\/]/)[0].trim(); return v||fallbackCat(); }
+  function pTs(ym){ if(!ym)return Date.now(); var p=ym.split("-"); return Date.UTC(+p[0],+p[1]-1,15,12); }
+  function importPaste(kind,text){
+    var rs=pRows(text); if(!rs.length){ toast("Paste some rows first"); return; } var n=0;
+    if(kind==="expenses"){ rs.forEach(function(r,i){ if(i===0&&pHeader(r))return; var amt=parseNum(r[0]); if(!(amt>0))return; var ym=pYM(r[4])||pYM(r[3]); state.expenses.push({id:"x"+Date.now().toString(36)+Math.random().toString(36).slice(2,7),amount:Math.round(amt),description:(r[1]||"").trim(),category:pCat(r[3]),ts:pTs(ym),source:((r[7]||"").trim()||"Quick Add")}); n++; }); }
+    else if(kind==="recurring"){ rs.forEach(function(r,i){ if(i===0&&pHeader(r))return; var monthly=parseNum(r[7]),amount=parseNum(r[2]); if(!(monthly>0)&&!(amount>0))return; var ak=/amort/i.test(r[1]||"")?"amortized":"recurring"; var per=parseInt(r[5],10)||null; var mo=monthly>0?monthly:(ak==="amortized"&&per?Math.round(amount/per):amount); state.recurring.push({id:"r"+Date.now().toString(36)+Math.random().toString(36).slice(2,7),kind:ak,description:(r[0]||"Recurring").trim(),category:pCat(r[6]),monthly:Math.round(mo),total:ak==="amortized"?Math.round(amount):null,periods:per,startYM:pYM(r[3])||nowYM(),endYM:pYM(r[4]),account:(r[9]||"").trim()}); n++; }); }
+    else if(kind==="rules"){ var rules=[]; rs.forEach(function(r,i){ if(i===0&&pHeader(r))return; var kw=(r[1]||"").trim(),cat=(r[2]||"").trim(); if(!kw||!cat||kw==="*")return; rules.push({p:parseInt(r[0],10)||9999,keywords:[kw.toLowerCase()],cat:cat,active:!/^no$/i.test((r[3]||"yes").trim())}); }); if(!rules.length){ toast("No rules found in that paste"); return; } rules.sort(function(a,b){return a.p-b.p;}); state.rules=rules.map(function(x){return {keywords:x.keywords,cat:x.cat,active:x.active};}); n=rules.length; }
+    setStateFrom(migrate(exportPayload())); queueWrite(); rebuildSelects(); if(kind!=="rules") selYM=nowYM(); renderAll(true);
+    toast("Imported "+n+" "+(kind==="rules"?"rule"+(n===1?"":"s"):kind==="recurring"?"recurring item"+(n===1?"":"s"):"expense"+(n===1?"":"s")));
+  }
+  function clearAllData(){ state.expenses=[]; state.recurring=[]; state.income=[]; state.incomeRecurring=[]; setStateFrom(migrate(exportPayload())); queueWrite(); renderAll(true); toast("All entries cleared"); }
+  el("imp-go").addEventListener("click",function(){ importPaste(el("imp-kind").value, el("imp-text").value); el("imp-text").value=""; });
+  el("imp-clear").addEventListener("click",function(){ var b=el("imp-clear"); if(b.getAttribute("data-armed")==="1"){ clearAllData(); b.removeAttribute("data-armed"); b.textContent="Clear ALL entries (start fresh)"; } else { b.setAttribute("data-armed","1"); b.textContent="Tap again to confirm — clears everything"; setTimeout(function(){ b.removeAttribute("data-armed"); b.textContent="Clear ALL entries (start fresh)"; },4000); } });
 
   /* boot */
   (function(){ var t=null; try{ t=localStorage.getItem(THEME_KEY); }catch(e){} if(t!=="light"&&t!=="sepia"&&t!=="night"){ t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme:dark)").matches)?"night":"light"; } applyTheme(t); })();
