@@ -414,13 +414,24 @@
       <div class="foldbody"><p class="note">Only the symbol and number format change — your data stays the same.</p><div class="curgrid" id="curgrid"></div></div>
     </details>
         <details class="fold reveal d3" id="fold-import">
-      <summary><span class="lead"><span class="gi"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>Import from your sheet</span><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+      <summary><span class="lead"><span class="gi"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>Import &amp; export (Excel)</span><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
       <div class="foldbody">
-        <p class="note">Copy rows straight from your Google Sheet and paste them below — it's read <b>on this device only</b>, nothing is sent anywhere. Pick what you're pasting, paste, Import; repeat for each tab. Order: <b>Category Engine</b> first, then Expense Data, then Recurring.</p>
-        <label class="fld" style="margin-top:0"><span class="lab">What are you pasting?</span><span class="selwrap"><select class="tf" id="imp-kind"><option value="rules">Category Engine (Priority · Keyword · Category · Active)</option><option value="expenses">Expense Data (Amount · Description · Month# · Category · MM YY)</option><option value="recurring">Recurring &amp; Amortized (Description · Type · Amount · Start · End · Periods · Category · Monthly)</option></select></span></label>
-        <label class="fld"><span class="lab">Paste rows here</span><textarea class="tf" id="imp-text" rows="5" placeholder="Select the rows in your sheet, copy (Cmd/Ctrl+C), and paste here"></textarea></label>
-        <button class="btn wide" id="imp-go" style="margin-top:12px">Import these rows</button>
-        <button class="btn wide" id="imp-clear" style="margin-top:10px;background:transparent;border:1px solid var(--bad);color:var(--bad)">Clear ALL entries (start fresh)</button>
+        <p class="note">Your data stays <b>on this device</b> — nothing is uploaded. Fill the Excel template (three tabs, same layout as your Google Sheet), then upload the whole file. Export gives you back the exact same format.</p>
+        <div class="lab" style="margin-top:2px;font-weight:600">Spending (Burn)</div>
+        <div class="datarow" style="margin-top:8px">
+          <button class="btn ghost" id="tpl-burn"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Template</button>
+          <button class="btn" id="imp-burn"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21V9m0 0l-4 4m4-4l4 4M5 3h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload Excel</button>
+        </div>
+        <button class="btn ghost wide" id="exp-burn" style="margin-top:8px">Export spending to Excel</button>
+        <div class="lab" style="margin-top:16px;font-weight:600">Income</div>
+        <div class="datarow" style="margin-top:8px">
+          <button class="btn ghost" id="tpl-income"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Template</button>
+          <button class="btn" id="imp-income"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21V9m0 0l-4 4m4-4l4 4M5 3h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload Excel</button>
+        </div>
+        <button class="btn ghost wide" id="exp-income" style="margin-top:8px">Export income to Excel</button>
+        <input type="file" id="imp-burn-file" accept=".xlsx,.xls" hidden>
+        <input type="file" id="imp-income-file" accept=".xlsx,.xls" hidden>
+        <button class="btn wide" id="imp-clear" style="margin-top:18px;background:transparent;border:1px solid var(--bad);color:var(--bad)">Clear ALL entries (start fresh)</button>
       </div>
     </details>
     <details class="fold reveal d3">
@@ -917,29 +928,258 @@
   function pYM(s){ s=String(s||"").trim(); var m=s.match(/([A-Za-z]{3,})[\s\-\/\u2019\x27]*(\d{2,4})/); if(m){ var mn=m[1].slice(0,3); mn=mn.charAt(0).toUpperCase()+mn.slice(1).toLowerCase(); var i=IMON.indexOf(mn); if(i>-1){ var y=m[2]; if(y.length===2)y="20"+y; return y+"-"+String(i+1).padStart(2,"0"); } } var m2=s.match(/(\d{4})[-\/](\d{1,2})/); if(m2) return m2[1]+"-"+String(+m2[2]).padStart(2,"0"); var m3=s.match(/^(\d{1,2})[\-\/](\d{2,4})$/); if(m3){ var y3=m3[2]; if(y3.length===2)y3="20"+y3; return y3+"-"+String(+m3[1]).padStart(2,"0"); } return null; }
   function pCat(c){ var v=String(c||"").split(/[,\/]/)[0].trim(); return v||fallbackCat(); }
   function pTs(ym){ if(!ym)return Date.now(); var p=ym.split("-"); return Date.UTC(+p[0],+p[1]-1,15,12); }
-  function importPaste(kind,text){
-    var rs=pRows(text); if(!rs.length){ toast("Paste some rows first"); return; }
-    var hdr=null,start=0;
-    if(pHeader(rs[0])){ hdr=rs[0].map(function(h){return String(h).toLowerCase().trim();}); start=1; }
-    function col(subs,def){ if(hdr){ for(var i=0;i<hdr.length;i++){ for(var j=0;j<subs.length;j++){ if(hdr[i].indexOf(subs[j])>-1) return i; } } } return def; }
-    var n=0, uid=function(p){ return p+Date.now().toString(36)+Math.random().toString(36).slice(2,7); };
-    if(kind==="expenses"){
-      var ca=col(["amount"],0),cd=col(["description","desc"],1),cc=col(["category"],3),cm=col(["mm","date"],4),cs=col(["source"],7);
-      for(var i=start;i<rs.length;i++){ var r=rs[i]; var amt=parseNum(r[ca]); if(!(amt>0))continue; var ym=pYM(r[cm])||pYM(r[4]); state.expenses.push({id:uid("x"),amount:Math.round(amt),description:(r[cd]||"").trim(),category:((r[cc]||"").trim()?pCat(r[cc]):categorize((r[cd]||"").trim())),ts:pTs(ym),source:((r[cs]||"").trim()||"Quick Add")}); n++; }
-    } else if(kind==="recurring"){
-      var d0=col(["description"],0),t0=col(["type"],1),a0=col(["amount"],2),s0=col(["start"],3),e0=col(["end"],4),p0=col(["period"],5),c0=col(["category"],6),m0=col(["monthly"],7);
-      for(var k=start;k<rs.length;k++){ var rr=rs[k]; var monthly=parseNum(rr[m0]),amount=parseNum(rr[a0]); if(!(monthly>0)&&!(amount>0))continue; var ak=/amort/i.test(rr[t0]||"")?"amortized":"recurring"; var per=parseInt(rr[p0],10)||null; var mo=monthly>0?monthly:(ak==="amortized"&&per?Math.round(amount/per):amount); state.recurring.push({id:uid("r"),kind:ak,description:(rr[d0]||"Recurring").trim(),category:((rr[c0]||"").trim()?pCat(rr[c0]):categorize((rr[d0]||"").trim())),monthly:Math.round(mo),total:ak==="amortized"?Math.round(amount):null,periods:per,startYM:pYM(rr[s0])||nowYM(),endYM:pYM(rr[e0]),account:""}); n++; }
-    } else if(kind==="rules"){
-      var rp=col(["priority"],0),rk=col(["keyword"],1),rc=col(["category"],2),rat=col(["active"],3);
-      var rules=[]; for(var q=start;q<rs.length;q++){ var rq=rs[q]; var kw=(rq[rk]||"").trim(),cat=(rq[rc]||"").trim(); if(!kw||!cat||kw==="*")continue; rules.push({p:parseInt(rq[rp],10)||9999,keywords:[kw.toLowerCase()],cat:cat,active:!/^no$/i.test((rq[rat]||"yes").trim())}); }
-      if(!rules.length){ toast("No rules found in that paste"); return; } rules.sort(function(a,b){return a.p-b.p;}); state.rules=rules.map(function(x){return {keywords:x.keywords,cat:x.cat,active:x.active};}); n=rules.length;
+  /* ==== XLSXm: self-contained .xlsx engine (no libs) ==== */
+/* XLSXm — tiny self-contained .xlsx reader/writer, no external libs. */
+var XLSXm = (function () {
+  var te = new TextEncoder();
+  var CRC = (function () { var t = []; for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; } return t; })();
+  function crc32(u8) { var c = 0xFFFFFFFF; for (var i = 0; i < u8.length; i++) c = CRC[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+  function xesc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function xunesc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+      .replace(/&#x([0-9a-fA-F]+);/g, function (_, h) { return String.fromCharCode(parseInt(h, 16)); })
+      .replace(/&#(\d+);/g, function (_, n) { return String.fromCharCode(+n); })
+      .replace(/&amp;/g, "&");
+  }
+  function colName(n) { var s = ""; n++; while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; }
+  function colIdx(a) { a = a.replace(/[0-9]/g, ""); var n = 0; for (var i = 0; i < a.length; i++) n = n * 26 + (a.charCodeAt(i) - 64); return n - 1; }
+
+  function sheetXml(rows) {
+    var out = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';
+    for (var r = 0; r < rows.length; r++) {
+      var row = rows[r] || [];
+      out += '<row r="' + (r + 1) + '">';
+      for (var c = 0; c < row.length; c++) {
+        var v = row[c]; if (v == null || v === "") continue;
+        var ref = colName(c) + (r + 1);
+        if (typeof v === "number" && isFinite(v)) out += '<c r="' + ref + '"><v>' + v + '</v></c>';
+        else out += '<c r="' + ref + '" t="inlineStr"><is><t xml:space="preserve">' + xesc(v) + '</t></is></c>';
+      }
+      out += '</row>';
     }
-    setStateFrom(migrate(exportPayload())); queueWrite(); rebuildSelects(); if(kind!=="rules") selYM=nowYM(); renderAll(true);
-    toast("Imported "+n+" "+(kind==="rules"?("rule"+(n===1?"":"s")):kind==="recurring"?("recurring item"+(n===1?"":"s")):("expense"+(n===1?"":"s"))));
+    return out + '</sheetData></worksheet>';
+  }
+  function build(sheets) {
+    var files = {};
+    files["[Content_Types].xml"] = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+      sheets.map(function (s, i) { return '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'; }).join("") +
+      '</Types>';
+    files["_rels/.rels"] = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+    files["xl/workbook.xml"] = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>' +
+      sheets.map(function (s, i) { return '<sheet name="' + xesc(s.name) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>'; }).join("") +
+      '</sheets></workbook>';
+    files["xl/_rels/workbook.xml.rels"] = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      sheets.map(function (s, i) { return '<Relationship Id="rId' + (i + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>'; }).join("") +
+      '</Relationships>';
+    sheets.forEach(function (s, i) { files["xl/worksheets/sheet" + (i + 1) + ".xml"] = sheetXml(s.rows || []); });
+    return zipStore(files);
+  }
+  function zipStore(files) {
+    function u16(n) { return [n & 255, (n >> 8) & 255]; }
+    function u32(n) { return [n & 255, (n >> 8) & 255, (n >> 16) & 255, (n >>> 24) & 255]; }
+    var parts = [], cent = [], offset = 0, names = Object.keys(files);
+    names.forEach(function (name) {
+      var data = te.encode(files[name]), nameb = te.encode(name), crc = crc32(data);
+      var local = [0x50, 0x4b, 0x03, 0x04].concat(u16(20), u16(0), u16(0), u16(0), u16(0), u32(crc), u32(data.length), u32(data.length), u16(nameb.length), u16(0));
+      parts.push(new Uint8Array(local), nameb, data);
+      var central = [0x50, 0x4b, 0x01, 0x02].concat(u16(20), u16(20), u16(0), u16(0), u16(0), u16(0), u32(crc), u32(data.length), u32(data.length), u16(nameb.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset));
+      cent.push({ head: new Uint8Array(central), name: nameb });
+      offset += local.length + nameb.length + data.length;
+    });
+    var cdStart = offset, cdParts = [], cdLen = 0;
+    cent.forEach(function (c) { cdParts.push(c.head, c.name); cdLen += c.head.length + c.name.length; });
+    var eocd = [0x50, 0x4b, 0x05, 0x06].concat(u16(0), u16(0), u16(names.length), u16(names.length), u32(cdLen), u32(cdStart), u16(0));
+    var all = parts.concat(cdParts, [new Uint8Array(eocd)]);
+    var total = all.reduce(function (a, b) { return a + b.length; }, 0), out = new Uint8Array(total), p = 0;
+    all.forEach(function (x) { out.set(x, p); p += x.length; });
+    return out;
+  }
+
+  function inflateRaw(u8) {
+    var ds = new DecompressionStream("deflate-raw");
+    var w = ds.writable.getWriter(); w.write(u8); w.close();
+    return new Response(ds.readable).arrayBuffer().then(function (ab) { return new Uint8Array(ab); });
+  }
+  function unzip(ab) {
+    var u8 = new Uint8Array(ab), d = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+    var i = u8.length - 22;
+    for (; i >= 0; i--) { if (u8[i] === 0x50 && u8[i + 1] === 0x4b && u8[i + 2] === 0x05 && u8[i + 3] === 0x06) break; }
+    if (i < 0) return Promise.reject(new Error("Not a valid .xlsx (no zip end record)"));
+    var cdOffset = d.getUint32(i + 16, true), cdCount = d.getUint16(i + 10, true);
+    var files = {}, jobs = [], p = cdOffset;
+    for (var n = 0; n < cdCount; n++) {
+      var method = d.getUint16(p + 10, true);
+      var compSize = d.getUint32(p + 20, true);
+      var nameLen = d.getUint16(p + 28, true);
+      var extraLen = d.getUint16(p + 30, true);
+      var commentLen = d.getUint16(p + 32, true);
+      var localOff = d.getUint32(p + 42, true);
+      var name = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nameLen));
+      var lNameLen = d.getUint16(localOff + 26, true), lExtraLen = d.getUint16(localOff + 28, true);
+      var dataStart = localOff + 30 + lNameLen + lExtraLen;
+      var raw = u8.subarray(dataStart, dataStart + compSize);
+      (function (nm, m, r) {
+        if (m === 8) jobs.push(inflateRaw(r).then(function (out) { files[nm] = out; }));
+        else files[nm] = r.slice();
+      })(name, method, raw);
+      p += 46 + nameLen + extraLen + commentLen;
+    }
+    return Promise.all(jobs).then(function () { return files; });
+  }
+  function txt(u8) { return u8 ? new TextDecoder().decode(u8) : ""; }
+  function parseSST(xml) {
+    var arr = []; if (!xml) return arr;
+    var re = /<si>([\s\S]*?)<\/si>/g, m;
+    while ((m = re.exec(xml))) { var t = "", tr = /<t[^>]*>([\s\S]*?)<\/t>/g, tm; while ((tm = tr.exec(m[1]))) t += tm[1]; arr.push(xunesc(t)); }
+    return arr;
+  }
+  function parseSheet(xml, sst) {
+    var rows = [], rowRe = /<row[^>]*>([\s\S]*?)<\/row>/g, rm;
+    while ((rm = rowRe.exec(xml))) {
+      var cRe = /<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g, cm, row = [];
+      while ((cm = cRe.exec(rm[1]))) {
+        var attrs = cm[1] || "", body = cm[2] || "";
+        var rref = (attrs.match(/r="([A-Z]+)\d+"/) || [])[1];
+        var ci = rref ? colIdx(rref) : row.length;
+        var t = (attrs.match(/t="([^"]+)"/) || [])[1], val = "";
+        if (t === "inlineStr") { var im = body.match(/<t[^>]*>([\s\S]*?)<\/t>/); val = xunesc(im ? im[1] : ""); }
+        else { var vm = body.match(/<v>([\s\S]*?)<\/v>/); var raw = vm ? vm[1] : ""; val = (t === "s") ? (sst[+raw] || "") : xunesc(raw); }
+        while (row.length < ci) row.push("");
+        row[ci] = val;
+      }
+      rows.push(row);
+    }
+    return rows;
+  }
+  function read(ab) {
+    return unzip(ab).then(function (files) {
+      var wb = txt(files["xl/workbook.xml"]), rels = txt(files["xl/_rels/workbook.xml.rels"]);
+      var sst = parseSST(txt(files["xl/sharedStrings.xml"]));
+      var relMap = {}, rre = /<Relationship\b([^>]*)\/>/g, r;
+      while ((r = rre.exec(rels))) { var a = r[1], id = (a.match(/Id="([^"]+)"/) || [])[1], tgt = (a.match(/Target="([^"]+)"/) || [])[1]; if (id) relMap[id] = tgt; }
+      var sheets = [], sre = /<sheet\b([^>]*)\/>/g, s;
+      while ((s = sre.exec(wb))) {
+        var at = s[1], name = xunesc((at.match(/name="([^"]*)"/) || [])[1] || "");
+        var rid = (at.match(/r:id="([^"]+)"/) || [])[1], tgt = relMap[rid] || "";
+        tgt = tgt.replace(/^\//, "").replace(/^\.\//, ""); if (tgt.indexOf("xl/") !== 0) tgt = "xl/" + tgt;
+        var xml = txt(files[tgt]);
+        sheets.push({ name: name, rows: xml ? parseSheet(xml, sst) : [] });
+      }
+      return sheets;
+    });
+  }
+  return { build: build, read: read, _crc32: crc32, _colName: colName, _colIdx: colIdx };
+})();
+
+  /* ---- Excel (.xlsx) import/export — runs on device, nothing leaves ---- */
+  function pad2(n){ return String(n).padStart(2,"0"); }
+  function buildYM(y,mo){ y=parseInt(String(y==null?"":y).replace(/[^0-9]/g,""),10); mo=parseInt(String(mo==null?"":mo).replace(/[^0-9]/g,""),10); if(!y||!mo||mo<1||mo>12)return null; if(y<100)y=2000+y; return y+"-"+pad2(mo); }
+  function ymLabel(ym){ if(!ym)return ""; var p=String(ym).split("-"); return MON[(+p[1]-1)]+" "+String(p[0]).slice(2); }
+  function newId(p){ return p+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  function hdrMap(rs){ var hdr=null,start=0; if(pHeader(rs[0])){ hdr=rs[0].map(function(h){return String(h).toLowerCase().trim();}); start=1; } function col(subs,def){ if(hdr){ for(var i=0;i<hdr.length;i++)for(var j=0;j<subs.length;j++){ if(hdr[i].indexOf(subs[j])>-1)return i; } } return def; } return {hdr:hdr,start:start,col:col}; }
+
+  function importRows(kind,rs){
+    if(!rs||!rs.length) return 0;
+    var mp=hdrMap(rs),col=mp.col,start=mp.start,n=0,i;
+    if(kind==="rules"){
+      var rp=col(["priority"],0),rk=col(["keyword"],1),rc=col(["category"],2),rat=col(["active"],3),rules=[];
+      for(i=start;i<rs.length;i++){ var rq=rs[i]; var kwc=(rq[rk]||"").trim(),cat=(rq[rc]||"").trim(); if(!kwc||!cat||kwc==="*")continue; var kws=kwc.split(",").map(function(x){return x.toLowerCase().trim();}).filter(Boolean); if(!kws.length)continue; rules.push({p:parseInt(rq[rp],10)||9999,keywords:kws,cat:cat,active:!/^(no|false|0|inactive|off)$/i.test((rq[rat]||"yes").trim())}); }
+      if(!rules.length)return 0; rules.sort(function(a,b){return a.p-b.p;}); state.rules=rules.map(function(x){return {keywords:x.keywords,cat:x.cat,active:x.active};}); return rules.length;
+    }
+    if(kind==="expenses"||kind==="income"){
+      var ca=col(["amount"],0),cd=col(["description","desc"],1),cmo=col(["month"],2),cc=col(["category"],3),cm=col(["mm","date"],4),cy=col(["year"],5),cs=col(["source"],7);
+      for(i=start;i<rs.length;i++){ var r=rs[i]; var amt=parseNum(r[ca]); if(!(amt>0))continue; var ym=pYM(r[cm])||buildYM(r[cy],r[cmo])||nowYM(); var desc=(r[cd]||"").trim(); var cv=(r[cc]||"").trim(); var cat=cv?pCat(cv):categorize(desc); var rec={id:newId(kind==="income"?"in":"x"),amount:Math.round(amt),description:desc,category:cat,ts:pTs(ym),source:((r[cs]||"").trim()||(kind==="income"?"Income":"Quick Add"))}; (kind==="income"?state.income:state.expenses).push(rec); n++; }
+      return n;
+    }
+    if(kind==="recurring"||kind==="increc"){
+      var d0=col(["description"],0),t0=col(["type"],1),a0=col(["amount"],2),s0=col(["start"],3),e0=col(["end"],4),p0=col(["period"],5),c0=col(["category"],6),m0=col(["monthly"],7);
+      if(kind==="increc"){ d0=col(["description"],0); a0=col(["amount"],1); s0=col(["start"],2); e0=col(["end"],3); c0=col(["category"],4); m0=col(["monthly"],5); t0=-1; p0=-1; }
+      for(i=start;i<rs.length;i++){ var rr=rs[i]; var monthly=parseNum(rr[m0]),amount=parseNum(rr[a0]); if(!(monthly>0)&&!(amount>0))continue; var ak=(t0>=0&&/amort/i.test(rr[t0]||""))?"amortized":"recurring"; var per=(p0>=0?parseInt(rr[p0],10):0)||null; var mo=monthly>0?monthly:(ak==="amortized"&&per?Math.round(amount/per):amount); var dsc=(rr[d0]||"Recurring").trim(); var cv2=(rr[c0]||"").trim(); var obj={id:newId(kind==="increc"?"im":"r"),kind:ak,description:dsc,category:cv2?pCat(cv2):categorize(dsc),monthly:Math.round(mo),total:ak==="amortized"?Math.round(amount):null,periods:per,startYM:pYM(rr[s0])||nowYM(),endYM:pYM(rr[e0]),account:""}; (kind==="increc"?state.incomeRecurring:state.recurring).push(obj); n++; }
+      return n;
+    }
+    return 0;
+  }
+
+  function importWorkbook(sheets,domain){
+    var ordered=sheets.slice().sort(function(a,b){ var ar=/engine|rule/i.test(a.name)?0:1, br=/engine|rule/i.test(b.name)?0:1; return ar-br; });
+    var total=0, kinds={};
+    ordered.forEach(function(sh){ var s=(sh.name||"").toLowerCase(); var kind=null;
+      if(/engine|rule/.test(s)) kind="rules";
+      else if(/recur|amort|monthly/.test(s)) kind=(domain==="income"?"increc":"recurring");
+      else if(/income|expense|burn|spend|data/.test(s)) kind=(domain==="income"?"income":"expenses");
+      if(kind){ var c=importRows(kind,sh.rows); total+=c; kinds[kind]=(kinds[kind]||0)+c; }
+    });
+    return {total:total,kinds:kinds};
+  }
+
+  function finalizeImport(res,domain){
+    setStateFrom(migrate(exportPayload())); queueWrite(); rebuildSelects();
+    selYM=nowYM(); screen=(domain==="income"?"income":"burn"); if(typeof setNav==="function")setNav(); renderAll(true);
+    if(!res.total){ toast("No rows found — check the tab names & header row"); return; }
+    var bits=[]; if(res.kinds.rules)bits.push(res.kinds.rules+" rules"); if(res.kinds.expenses)bits.push(res.kinds.expenses+" expenses"); if(res.kinds.recurring)bits.push(res.kinds.recurring+" recurring"); if(res.kinds.income)bits.push(res.kinds.income+" income"); if(res.kinds.increc)bits.push(res.kinds.increc+" monthly income");
+    toast("Imported "+bits.join(" · "));
+  }
+
+  function readXlsx(file,domain){
+    if(!/\.xlsx?$/i.test(file.name||"")){ toast("Please pick an .xlsx file"); return; }
+    var rd=new FileReader();
+    rd.onload=function(){ try{ XLSXm.read(rd.result).then(function(sheets){ finalizeImport(importWorkbook(sheets,domain),domain); }).catch(function(){ toast("Couldn't read that .xlsx"); }); }catch(e){ toast("Couldn't read that .xlsx"); } };
+    rd.onerror=function(){ toast("Couldn't read that file"); };
+    rd.readAsArrayBuffer(file);
+  }
+
+  function saveXlsx(name,sheets){ try{ var u8=XLSXm.build(sheets); var blob=new Blob([u8],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}); var url=URL.createObjectURL(blob); var a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },800); toast("Saved "+name); }catch(e){ toast("Export failed"); } }
+
+  function exportBurn(){
+    var eng=[["Priority","Keyword","Category","Active"]];
+    state.rules.forEach(function(r,i){ eng.push([i+1,(r.keywords||[]).join(", "),r.cat,r.active===false?"No":"Yes"]); });
+    var exp=[["Expense Amount","Description","Month #","Category","MM YY","Year","Account","Source"]];
+    state.expenses.forEach(function(e){ var d=new Date(e.ts); exp.push([e.amount,e.description||"",d.getMonth()+1,e.category||"",MON[d.getMonth()]+" "+String(d.getFullYear()).slice(2),d.getFullYear(),"",e.source||""]); });
+    var rec=[["Description","Type","Amount","Start","End","Periods","Category","Monthly"]];
+    state.recurring.forEach(function(r){ rec.push([r.description||"",r.kind==="amortized"?"Amortized":"Recurring",(r.total!=null?r.total:r.monthly)||0,ymLabel(r.startYM),ymLabel(r.endYM),r.periods||"",r.category||"",r.monthly||0]); });
+    saveXlsx("Ledger-Burn-"+nowYM()+".xlsx",[{name:"Category Engine",rows:eng},{name:"Expense Data",rows:exp},{name:"Recurring & Amortized",rows:rec}]);
+  }
+  function exportIncome(){
+    var inc=[["Amount","Description","Month #","Category","MM YY","Year","Source"]];
+    state.income.forEach(function(e){ var d=new Date(e.ts); inc.push([e.amount,e.description||"",d.getMonth()+1,e.category||"",MON[d.getMonth()]+" "+String(d.getFullYear()).slice(2),d.getFullYear(),e.source||""]); });
+    var rec=[["Description","Amount","Start","End","Category","Monthly"]];
+    state.incomeRecurring.forEach(function(r){ rec.push([r.description||"",r.monthly||0,ymLabel(r.startYM),ymLabel(r.endYM),r.category||"",r.monthly||0]); });
+    saveXlsx("Ledger-Income-"+nowYM()+".xlsx",[{name:"Income Data",rows:inc},{name:"Recurring Income",rows:rec}]);
+  }
+  function tplBurn(){
+    saveXlsx("Ledger-Burn-Template.xlsx",[
+      {name:"Category Engine",rows:[["Priority","Keyword","Category","Active"],[1,"rent","Rent","Yes"],[2,"zepto, blinkit, grocery","Grocery","Yes"],[3,"myntra, ajio, amazon","Shopping - Wants","Yes"]]},
+      {name:"Expense Data",rows:[["Expense Amount","Description","Month #","Category","MM YY","Year","Account","Source"],["₹3,000","House rent",5,"Rent","May 25",2025,"HDFC","Quick Add"],["₹1,240","Zepto groceries",9,"","Sep 25",2025,"Axis",""]]},
+      {name:"Recurring & Amortized",rows:[["Description","Type","Amount","Start","End","Periods","Category","Monthly"],["House Expense","Recurring",40000,"Aug 26","Dec 28","","Family Spending",40000],["iPhone 15","Amortized",90000,"Jan 25","Dec 25",12,"Shopping - Wants",7500]]}
+    ]);
+  }
+  function tplIncome(){
+    saveXlsx("Ledger-Income-Template.xlsx",[
+      {name:"Income Data",rows:[["Amount","Description","Month #","Category","MM YY","Year","Source"],["₹1,20,000","Salary",9,"Salary","Sep 25",2025,"Company"]]},
+      {name:"Recurring Income",rows:[["Description","Amount","Start","End","Category","Monthly"],["Salary",120000,"Jan 25","","Salary",120000]]}
+    ]);
   }
 
   function clearAllData(){ state.expenses=[]; state.recurring=[]; state.income=[]; state.incomeRecurring=[]; setStateFrom(migrate(exportPayload())); queueWrite(); renderAll(true); toast("All entries cleared"); }
-  el("imp-go").addEventListener("click",function(){ importPaste(el("imp-kind").value, el("imp-text").value); el("imp-text").value=""; });
+
+  el("tpl-burn").addEventListener("click",tplBurn);
+  el("tpl-income").addEventListener("click",tplIncome);
+  el("exp-burn").addEventListener("click",exportBurn);
+  el("exp-income").addEventListener("click",exportIncome);
+  el("imp-burn").addEventListener("click",function(){ el("imp-burn-file").click(); });
+  el("imp-income").addEventListener("click",function(){ el("imp-income-file").click(); });
+  el("imp-burn-file").addEventListener("change",function(){ if(this.files&&this.files[0]) readXlsx(this.files[0],"burn"); this.value=""; });
+  el("imp-income-file").addEventListener("change",function(){ if(this.files&&this.files[0]) readXlsx(this.files[0],"income"); this.value=""; });
   el("imp-clear").addEventListener("click",function(){ var b=el("imp-clear"); if(b.getAttribute("data-armed")==="1"){ clearAllData(); b.removeAttribute("data-armed"); b.textContent="Clear ALL entries (start fresh)"; } else { b.setAttribute("data-armed","1"); b.textContent="Tap again to confirm — clears everything"; setTimeout(function(){ b.removeAttribute("data-armed"); b.textContent="Clear ALL entries (start fresh)"; },4000); } });
 
   /* boot */
