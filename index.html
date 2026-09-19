@@ -74,6 +74,9 @@
   .stepper .lab{min-width:104px;text-align:center;font-size:15px;font-weight:600;line-height:1.05}
   .stepper .lab small{display:block;font-size:9.5px;color:var(--acc);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
   .granseg{margin-top:12px}
+  .scoperow{margin-top:9px;display:flex;justify-content:center}
+  .scopebtn{font-size:12px;font-weight:600;color:var(--ink-3);background:var(--seg-bg);border:none;padding:6px 14px;border-radius:99px}
+  .scopebtn b{color:var(--ink);font-weight:700}
   .sortseg{margin:10px 16px 2px}
   .sortseg button{font-size:12.5px;padding:6px 4px}
   .sortseg .sar{font-size:11px;margin-left:1px}
@@ -142,6 +145,8 @@
   .catline .cv{text-align:right}.catline .cv b{font-weight:600;font-size:15px}.catline .cv small{display:block;font-size:11.5px;color:var(--ink-3);font-weight:600}
   .catline .cchev{width:14px;height:14px;color:var(--ink-4);transition:transform .2s}
   .catline[aria-expanded="true"] .cchev{transform:rotate(90deg)}
+  .catmore{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;border:none;background:transparent;color:var(--acc);font-weight:600;font-size:13.5px;padding:13px;border-top:1px solid var(--sep)}
+  .catmore:active{background:var(--field)}
   .drill{background:var(--card-2)}
   .drill .din{padding:2px 18px 12px}
   .drill .cap{font-size:12px;color:var(--ink-3);font-weight:600;padding:10px 0 8px;line-height:1.5}
@@ -155,6 +160,11 @@
 
   .listhd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:16px 18px 4px}
   .listhd h2{font-size:16px;font-weight:600;margin:0}.listhd .hint{font-size:12px;color:var(--ink-3);font-weight:500}
+  .txnsearch{display:flex;align-items:center;gap:8px;margin:8px 16px 2px;padding:9px 12px;background:var(--field);border-radius:12px;border:1px solid var(--sep)}
+  .txnsearch svg{width:17px;height:17px;color:var(--ink-3);flex:none}
+  .txnsearch input{flex:1;min-width:0;border:none;background:transparent;color:var(--field-ink);font-size:14.5px;font-weight:500;outline:none}
+  .txnsearch button{border:none;background:transparent;color:var(--ink-3);display:grid;place-items:center;padding:2px}
+  .txnsearch button svg{width:15px;height:15px}
   .rows{padding:0 0 4px}
   .row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;width:100%;text-align:left;border:none;background:transparent;padding:11px 18px;position:relative;transition:background .14s}
   .row:active{background:var(--field)}
@@ -276,7 +286,7 @@
   .catchip{border:1px solid var(--sep);background:var(--card);color:var(--ink-2);font-weight:600;font-size:12.5px;padding:8px 12px;border-radius:99px;display:inline-flex;align-items:center;gap:7px;transition:transform .12s}
   .catchip:active{transform:scale(.94)}.catchip[aria-pressed="true"]{border-color:transparent;color:#fff}
   .computed{margin-top:12px;font-size:13px;color:var(--acc);font-weight:600;background:var(--acc-tint);padding:11px 13px;border-radius:11px}
-  .sheetact{display:flex;gap:11px;margin-top:18px}
+  .sheetact{position:sticky;bottom:0;display:flex;gap:11px;margin-top:16px;padding:12px 0 4px;background:var(--card);border-top:1px solid var(--sep)}
   .sheetact .save{flex:1;border:none;background:var(--acc);color:var(--acc-ink);font-weight:700;font-size:16px;padding:15px;border-radius:14px;transition:transform .14s}
   .sheetact .save:active{transform:scale(.97)}.sheetact .save:disabled{opacity:.4}
   .sheetact .del{border:1px solid var(--sep);background:transparent;color:var(--bad);font-weight:600;padding:0 20px;border-radius:14px}
@@ -329,6 +339,7 @@
       <button data-g="quarter" aria-selected="false">Quarter</button>
       <button data-g="year" aria-selected="false">Year</button>
     </div>
+    <div class="scoperow" id="scoperow" hidden><button class="scopebtn" id="scopetoggle"></button></div>
   </header>
 
   <!-- FLOW (Burn or Income) -->
@@ -353,6 +364,7 @@
     </div>
     <div class="group reveal d4">
       <div class="listhd"><h2 id="txnhead">Transactions</h2><span class="hint" id="txncount"></span></div>
+      <div class="txnsearch"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.2-3.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="txnsearch" placeholder="Search transactions…" autocomplete="off"><button id="txnsearchclear" aria-label="Clear search" hidden><svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
       <div class="seg sortseg" id="txnsort" role="tablist" aria-label="Sort transactions"></div>
       <div class="txnfilter" id="txnfilter" hidden></div>
       <div class="rows" id="txnlist"></div>
@@ -540,7 +552,7 @@
   function parseEntry(text){ var raw=(text||"").trim(); var m=raw.match(/(?:₹|\$|€|£|rs\.?|inr)?\s*(\d[\d,]*(?:\.\d+)?)\s*(k|thousand|lakh|l\b)?/i); var amount=null,idx=-1,len=0; if(m){ amount=parseNum(m[1]); idx=m.index; len=m[0].length; if(m[2]){ var u=m[2].toLowerCase(); if(u[0]==="k"||u.indexOf("thousand")>-1)amount*=1000; else if(u[0]==="l")amount*=100000; } } var desc=raw; if(m) desc=(raw.slice(0,idx)+" "+raw.slice(idx+len)); desc=desc.replace(/^[\s,.\-]*/,"").replace(/^(i\s+)?(just\s+)?(spent|spend|paid|pay|bought|buy|used|got)\b/i,"").replace(/^[\s,.\-]*(on|for|at|of)\s+/i," ").replace(/\b(rs|rupees|inr|usd|eur)\b/gi," ").replace(/[₹$€£]/g," ").replace(/\s+/g," ").trim(); return {amount:amount,description:desc,category:categorize(desc||raw)}; }
 
   var state={expenses:[],recurring:[],rules:[],categories:[],income:[],incomeRecurring:[],incomeCategories:[],settings:{currency:CURRENCIES[0],fallbackCat:"Needs Review"},_sample:false};
-  var selYM=ymOfDate(new Date()),gran="month",screen="burn",catFilter=null,diveSide="burn",txnSort={key:"date",dir:"desc"};
+  var selYM=ymOfDate(new Date()),gran="month",screen="burn",catFilter=null,diveSide="burn",txnSort={key:"date",dir:"desc"},catExpanded=false,txnQuery="";
   var editId=null,editRecId=null,editIncId=null,editIncRecId=null,addDomain="expense",addType="oneoff",addAutoCat=true,addCat="Needs Review",incAddCat="Salary",newCatColor=PALETTE[0],newIncColor=PALETTE[0];
   var dataSource="loading",db=null,docRef=null,writeTimer=null,lastHeroTotal=0;
   function flowSide(){ return screen==="income"?"income":"burn"; }
@@ -552,6 +564,9 @@
   function bstart(g,ym){ var y=+ym.split("-")[0],m=+ym.split("-")[1]; if(g==="year")return y+"-01"; if(g==="quarter"){ var qm=Math.floor((m-1)/3)*3+1; return y+"-"+String(qm).padStart(2,"0"); } return ym; }
   function badd(g,s,n){ if(g==="year")return ymAdd(s,12*n); if(g==="quarter")return ymAdd(s,3*n); return ymAdd(s,n); }
   function bmonths(g,s){ var a=[],c=g==="year"?12:g==="quarter"?3:1,i; for(i=0;i<c;i++)a.push(ymAdd(s,i)); return a; }
+  var periodScope="todate";
+  function bmonthsScoped(g,s){ var all=bmonths(g,s); if(periodScope==="full"||g==="month")return all; var cur=nowYM(); var f=all.filter(function(ym){return ymCmp(ym,cur)<=0;}); return f.length?f:all; }
+  function curMonths(){ return bmonthsScoped(gran,selStart()); }
   function blabel(g,s){ var y=s.split("-")[0]; if(g==="year")return y; if(g==="quarter")return "Q"+(Math.floor((+s.split("-")[1]-1)/3)+1)+" "+y; return ymLabel(s); }
   function bshort(g,s){ var y=s.split("-")[0].slice(2); if(g==="year")return "’"+y; if(g==="quarter")return "Q"+(Math.floor((+s.split("-")[1]-1)/3)+1)+" ’"+y; return ymShort(s); }
   function selStart(){ return bstart(gran,selYM); }
@@ -568,13 +583,13 @@
   function aggFor(exp,rec,ym,mask){ mask=mask||function(c){return c;}; var daily=0,recc=0,byCat={},count=0; function bump(c){ if(!byCat[c])byCat[c]={daily:0,rec:0,count:0}; return byCat[c]; } exp.forEach(function(e){ if(ymOf(e.ts)===ym){ daily+=e.amount; count++; var b=bump(mask(e.category)); b.daily+=e.amount; b.count++; } }); rec.forEach(function(r){ if(recActiveIn(r,ym)){ recc+=r.monthly; var b=bump(mask(r.category)); b.rec+=r.monthly; b.count++; } }); return {daily:daily,rec:recc,total:daily+recc,byCat:byCat,count:count}; }
   function mAgg(side,ym){ var s=sideOf(side); return aggFor(s.e,s.r,ym,function(c){return maskCat(side,c);}); }
   function aggMonths(side,list){ var d=0,r=0,t=0,c=0,byCat={}; list.forEach(function(ym){ var a=mAgg(side,ym); d+=a.daily; r+=a.rec; t+=a.total; c+=a.count; Object.keys(a.byCat).forEach(function(k){ if(!byCat[k])byCat[k]={daily:0,rec:0,count:0}; byCat[k].daily+=a.byCat[k].daily; byCat[k].rec+=a.byCat[k].rec; byCat[k].count+=a.byCat[k].count; }); }); return {daily:d,rec:r,total:t,count:c,byCat:byCat}; }
-  function periodAgg(side){ return aggMonths(side,bmonths(gran,selStart())); }
+  function periodAgg(side){ return aggMonths(side,curMonths()); }
   function monthsFrom(exp,rec){ var set={},cur=nowYM(),cap=ymAdd((ymCmp(selYM,cur)>0?selYM:cur),3); exp.forEach(function(e){set[ymOf(e.ts)]=1;}); rec.forEach(function(r){ var y=r.startYM,end=r.endYM||cap,g=0; while(ymCmp(y,end)<=0&&g<800){set[y]=1;y=ymAdd(y,1);g++;} }); return set; }
   function allMonthsUnion(){ var s=monthsFrom(state.expenses,state.recurring),s2=monthsFrom(state.income,state.incomeRecurring); Object.keys(s2).forEach(function(k){s[k]=1;}); s[selYM]=1; s[nowYM()]=1; return Object.keys(s).sort(ymCmp); }
   function allMonthsFor(side){ var d=sideOf(side),s=monthsFrom(d.e,d.r); s[selYM]=1; s[nowYM()]=1; return Object.keys(s).sort(ymCmp); }
   function bucketList(){ var ss=selStart(),list=[],i; for(i=-3;i<=3;i++)list.push(badd(gran,ss,i)); return list; }
-  function bseries(side){ return bucketList(allMonthsFor(side)).map(function(st){ var ms=bmonths(gran,st); var a=aggMonths(side,ms); return {start:st,months:ms,total:a.total,daily:a.daily,rec:a.rec,byCat:a.byCat}; }); }
-  function bviSeries(){ return bucketList(allMonthsUnion()).map(function(st){ var ms=bmonths(gran,st); return {start:st,burn:aggMonths("burn",ms).total,income:aggMonths("income",ms).total}; }); }
+  function bseries(side){ return bucketList(allMonthsFor(side)).map(function(st){ var ms=bmonthsScoped(gran,st); var a=aggMonths(side,ms); return {start:st,months:ms,total:a.total,daily:a.daily,rec:a.rec,byCat:a.byCat}; }); }
+  function bviSeries(){ return bucketList(allMonthsUnion()).map(function(st){ var ms=bmonthsScoped(gran,st); return {start:st,burn:aggMonths("burn",ms).total,income:aggMonths("income",ms).total}; }); }
 
   /* persistence */
   function exportPayload(){ return {app:"ledger",version:1,exportedAt:new Date().toISOString(),settings:state.settings,categories:state.categories,rules:state.rules,expenses:state.expenses,recurring:state.recurring,income:state.income,incomeRecurring:state.incomeRecurring,incomeCategories:state.incomeCategories}; }
@@ -625,11 +640,13 @@
     var months=allMonthsUnion(),minS=bstart(gran,months[0]),cur=nowYM(),maxS=bstart(gran,months[months.length-1]); if(ymCmp(maxS,bstart(gran,cur))<0)maxS=bstart(gran,cur);
     el("prevm").disabled=ymCmp(selStart(),minS)<=0; el("nextm").disabled=ymCmp(selStart(),maxS)>=0;
     el("momtitle").textContent=periodTitle();
+    var sr=el("scoperow"); if(sr){ var fut=bmonths(gran,selStart()).filter(function(ym){return ymCmp(ym,nowYM())>0;}).length>0; if(gran==="month"||!fut){ sr.hidden=true; } else { sr.hidden=false; el("scopetoggle").innerHTML=(periodScope==="todate"?'Showing <b>to date</b> · tap for full '+gran:'Showing <b>full '+gran+'</b> incl. future · tap for to date'); } }
     document.querySelector("header.top").style.display=screen==="settings"?"none":"block";
   }
   function setDelta(d,cur,prev,label){ if(prev>0&&cur!==prev){ var ch=(cur-prev)/prev*100,up=ch>0; d.className="delta "+(up?"up":"down"); d.textContent=(up?"↑ ":"↓ ")+Math.abs(Math.round(ch))+"% vs "+label; } else if(prev>0){ d.className="delta flat"; d.textContent="no change"; } else { d.className="delta flat"; d.textContent="new"; } }
 
   function renderFlow(side,animate){
+    catExpanded=false;
     var a=periodAgg(side),income=side==="income";
     el("herocap").textContent=income?"Total income":"Total spend";
     el("herolabel").textContent=blabel(gran,selStart());
@@ -664,28 +681,35 @@
   function drillHtml(side,cat,months){ var items=categoryItems(side,cat,months),total=0; items.forEach(function(it){total+=it.amount;}); var cum=0,vital=0,done=false; items.forEach(function(it){ if(!done){ cum+=it.amount; vital++; if(cum>=total*0.8) done=true; } }); var cap='<div class="cap">Top <b>'+vital+'</b> of '+items.length+' '+(items.length===1?"item makes":"items make")+' ~80% ('+money(cum)+' of '+money(total)+').</div>'; var rows=items.slice(0,12).map(function(it,i){ var isV=i<vital; return '<div class="di'+(isV?' vital':'')+'"><span class="dmark"></span><span class="dd">'+escapeHtml(it.desc)+'</span><span class="da">'+money(it.amount)+'<small>'+pct(it.amount,total)+'%</small></span></div>'; }).join(""); return '<div class="din">'+cap+rows+'</div>'; }
   function renderCategory(side,animate){
     var a=periodAgg(side),cats=sideOf(side).c,rows=[]; Object.keys(a.byCat).forEach(function(c){ var v=a.byCat[c].daily+a.byCat[c].rec; if(v>0)rows.push({cat:c,value:v}); }); rows.sort(function(x,y){return y.value-x.value;});
-    var dwrap=el("donut"),lbox=el("catlines"),months=bmonths(gran,selStart());
+    var dwrap=el("donut"),lbox=el("catlines"),months=curMonths();
     if(!rows.length){ dwrap.parentNode.style.display="none"; lbox.innerHTML='<div class="emptybox"><svg viewBox="0 0 24 24" fill="none"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><p>Nothing '+(side==="income"?"coming in":"spent")+' in '+blabel(gran,selStart())+' yet</p><span class="sub">Tap the + button to add '+(side==="income"?"income":"an expense")+', or swipe to another '+gran+'.</span></div>'; return; }
     dwrap.parentNode.style.display="none";
-    var html=""; rows.forEach(function(r,i){ var p=pct(r.value,a.total),col=colorIn(r.cat,cats),other=(r.cat===OTHERS);
+    var CATN=12,showAll=catExpanded||rows.length<=CATN,vis=showAll?rows:rows.slice(0,CATN);
+    var html=""; vis.forEach(function(r,i){ var p=pct(r.value,a.total),col=colorIn(r.cat,cats),other=(r.cat===OTHERS);
       if(other){ html+='<div class="catline" style="cursor:default"><span class="catdisc" style="background:'+col+';width:10px;height:10px;border-radius:3px;flex:none"></span><span class="cn"><span class="t">Others <span style="color:var(--ink-4);font-weight:500;font-size:12px">· hidden</span></span><span class="bar"><i style="width:'+p+'%;background:'+col+'"></i></span></span><span class="cv"><b class="tnum">'+money(r.value)+'</b><small>'+p+'%</small></span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="color:var(--ink-4)"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2"/></svg></div>'; }
       else { html+='<button class="catline" data-cat="'+escapeHtml(r.cat)+'" data-i="'+i+'" aria-expanded="false"><span class="catdisc" style="background:'+col+';width:10px;height:10px;border-radius:3px;flex:none"></span><span class="cn"><span class="t">'+escapeHtml(r.cat)+'</span><span class="bar"><i style="width:'+p+'%;background:'+col+'"></i></span></span><span class="cv"><b class="tnum">'+money(r.value)+'</b><small>'+p+'%</small></span><svg class="cchev" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="drill" id="drill-'+i+'" hidden></div>'; } });
+    if(rows.length>CATN){ html+='<button class="catmore" id="catmore">'+(showAll?('Show top '+CATN+' only'):('Show '+(rows.length-CATN)+' more'))+'<svg viewBox="0 0 24 24" fill="none" style="width:13px;height:13px;transform:rotate('+(showAll?'180deg':'0')+')"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'; }
     lbox.innerHTML=html;
     if(animate!==false&&!REDUCE){ var bars=lbox.querySelectorAll(".cn .bar i"); bars.forEach(function(bi){ var w=bi.style.width; bi.style.width="0%"; requestAnimationFrame(function(){ bi.style.width=w; }); }); }
+    var mb=el("catmore"); if(mb) mb.addEventListener("click",function(){ catExpanded=!catExpanded; renderCategory(side,false); });
     lbox.querySelectorAll(".catline[data-cat]").forEach(function(b){ b.addEventListener("click",function(){ var i=b.getAttribute("data-i"),cat=b.getAttribute("data-cat"),drill=el("drill-"+i),open=b.getAttribute("aria-expanded")==="true"; if(open){ b.setAttribute("aria-expanded","false"); drill.hidden=true; } else { b.setAttribute("aria-expanded","true"); drill.innerHTML=drillHtml(side,cat,months); drill.hidden=false; } }); });
   }
   function cmpTxn(a,b){ var k=txnSort.key,r; if(k==="amount")r=a.amount-b.amount; else if(k==="cat")r=String(a.cat).localeCompare(String(b.cat))||(a.ts-b.ts); else if(k==="name")r=String(a.desc||a.cat).localeCompare(String(b.desc||b.cat))||(a.ts-b.ts); else r=a.ts-b.ts; return txnSort.dir==="asc"?r:-r; }
   function renderSortBar(side){ var box=el("txnsort"); if(!box)return; box.hidden=false; var opts=[["date","Date"],["amount","Amount"],["cat","Category"],["name","Name"]]; box.innerHTML=opts.map(function(o){ var on=txnSort.key===o[0]; return '<button data-k="'+o[0]+'" aria-selected="'+on+'">'+o[1]+(on?' <span class="sar">'+(txnSort.dir==="asc"?"↑":"↓")+'</span>':'')+'</button>'; }).join(""); box.querySelectorAll("button").forEach(function(b){ b.addEventListener("click",function(){ var k=b.getAttribute("data-k"); if(txnSort.key===k) txnSort.dir=(txnSort.dir==="asc"?"desc":"asc"); else { txnSort.key=k; txnSort.dir=(k==="cat"||k==="name")?"asc":"desc"; } renderTxns(side); }); }); }
   function renderTxns(side){
-    var ms=bmonths(gran,selStart()),d=sideOf(side),cats=d.c,income=side==="income",items=[],othersSum=0,othersCount=0;
-    d.e.forEach(function(e){ if(ms.indexOf(ymOf(e.ts))>-1){ if(isCatHidden(side,e.category)){ othersSum+=e.amount; othersCount++; } else items.push({type:"exp",ref:e,cat:e.category,desc:e.description,amount:e.amount,ts:e.ts}); } });
-    d.r.forEach(function(r){ ms.forEach(function(ym){ if(recActiveIn(r,ym)){ if(isCatHidden(side,r.category)){ othersSum+=r.monthly; othersCount++; } else items.push({type:recKind(r),ref:r,cat:r.category,desc:r.description,amount:r.monthly,ts:new Date(ym+"-01T00:00:00").getTime(),ym:ym}); } }); });
-    var shown=catFilter?items.filter(function(i){return i.cat===catFilter;}):items.slice(); shown.sort(cmpTxn); renderSortBar(side);
-    var f=el("txnfilter"); if(catFilter){ f.hidden=false; f.innerHTML='<span class="chip"><span class="catdisc" style="width:10px;height:10px;border-radius:3px;background:'+colorIn(catFilter,cats)+'"></span>'+escapeHtml(catFilter)+'</span><button class="chip clear" id="clearfilter">Clear ✕</button>'; el("clearfilter").addEventListener("click",function(){ catFilter=null; renderFlow(side,false); }); } else f.hidden=true;
-    var showOthers=(!catFilter&&othersSum>0),n=shown.length+(showOthers?1:0);
-    el("txnhead").textContent=catFilter?catFilter:(income?"Income":"Transactions"); el("txncount").textContent=n?n+" "+(n===1?"item":"items"):"";
+    var d=sideOf(side),cats=d.c,income=side==="income",items=[],othersSum=0,othersCount=0;
+    var q=(txnQuery||"").trim().toLowerCase(),searching=!!q,ms=curMonths();
+    d.e.forEach(function(e){ if(!(searching||ms.indexOf(ymOf(e.ts))>-1))return; if(isCatHidden(side,e.category)){ if(!searching){ othersSum+=e.amount; othersCount++; } } else items.push({type:"exp",ref:e,cat:e.category,desc:e.description,amount:e.amount,ts:e.ts}); });
+    if(searching){ d.r.forEach(function(r){ if(isCatHidden(side,r.category))return; items.push({type:recKind(r),ref:r,cat:r.category,desc:r.description,amount:r.monthly,ts:new Date((r.startYM||nowYM())+"-01T00:00:00").getTime(),ym:r.startYM}); }); }
+    else { d.r.forEach(function(r){ ms.forEach(function(ym){ if(recActiveIn(r,ym)){ if(isCatHidden(side,r.category)){ othersSum+=r.monthly; othersCount++; } else items.push({type:recKind(r),ref:r,cat:r.category,desc:r.description,amount:r.monthly,ts:new Date(ym+"-01T00:00:00").getTime(),ym:ym}); } }); }); }
+    var shown=catFilter?items.filter(function(i){return i.cat===catFilter;}):items.slice();
+    if(searching) shown=shown.filter(function(i){ return String(i.desc||"").toLowerCase().indexOf(q)>-1||String(i.cat||"").toLowerCase().indexOf(q)>-1||String(i.amount).indexOf(q)>-1; });
+    shown.sort(cmpTxn); renderSortBar(side);
+    var f=el("txnfilter"); if(catFilter&&!searching){ f.hidden=false; f.innerHTML='<span class="chip"><span class="catdisc" style="width:10px;height:10px;border-radius:3px;background:'+colorIn(catFilter,cats)+'"></span>'+escapeHtml(catFilter)+'</span><button class="chip clear" id="clearfilter">Clear ✕</button>'; el("clearfilter").addEventListener("click",function(){ catFilter=null; renderFlow(side,false); }); } else f.hidden=true;
+    var showOthers=(!catFilter&&!searching&&othersSum>0),n=shown.length+(showOthers?1:0);
+    el("txnhead").textContent=searching?"Search results":(catFilter?catFilter:(income?"Income":"Transactions")); el("txncount").textContent=n?n+" "+(n===1?"item":"items"):"";
     var list=el("txnlist");
-    if(!shown.length&&!showOthers){ var sb0=el("txnsort"); if(sb0)sb0.hidden=true; list.innerHTML='<div class="emptybox"><svg viewBox="0 0 24 24" fill="none"><path d="M7 8h10M7 12h10M7 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><p>No '+(income?"income":"transactions")+' in '+blabel(gran,selStart())+' yet</p><span class="sub">Tap the + button to add '+(income?"income":"an expense")+', or swipe left / right to change '+gran+'.</span></div>'; return; }
+    if(!shown.length&&!showOthers){ var sb0=el("txnsort"); if(sb0)sb0.hidden=true; list.innerHTML='<div class="emptybox"><svg viewBox="0 0 24 24" fill="none"><path d="M7 8h10M7 12h10M7 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><p>'+(searching?('No matches for “'+escapeHtml(txnQuery.trim())+'”'):('No '+(income?"income":"transactions")+' in '+blabel(gran,selStart())+' yet'))+'</p>'+(searching?'':('<span class="sub">Tap the + button to add '+(income?"income":"an expense")+', or swipe left / right to change '+gran+'.</span>'))+'</div>'; return; }
     var html=""; shown.forEach(function(i){ var dt=new Date(i.ts); var tag=i.type==="recurring"?'<span class="tagr rec">'+(income?"Monthly":"Recurring")+'</span>':i.type==="amortized"?'<span class="tagr amo">Amortized</span>':''; var when=i.type==="exp"?(dt.getDate()+" "+ymShort(ymOf(i.ts))):(gran==="month"?"monthly":ymShort(i.ym)); var review=(!income&&i.cat===fallbackCat())?'<span class="tagr rev">Review</span>':''; html+='<button class="row" data-type="'+i.type+'" data-id="'+escapeHtml(i.ref.id)+'"><span class="ic" style="background:'+colorIn(i.cat,cats)+'">'+initials(i.cat)+'</span><span class="info"><span class="d">'+escapeHtml(i.desc||i.cat)+'</span><span class="m">'+tag+when+' · '+escapeHtml(i.cat)+' '+review+'</span></span><span class="amt2 tnum">'+money(i.amount)+'</span></button>'; });
     if(showOthers){ html+='<div class="row" style="cursor:default"><span class="ic" style="background:#9AA0A6"><svg viewBox="0 0 24 24" width="17" height="17" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="#fff" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="#fff" stroke-width="2"/></svg></span><span class="info"><span class="d">Others</span><span class="m">'+othersCount+' hidden '+(othersCount===1?"item":"items")+' · locked</span></span><span class="amt2 tnum">'+money(othersSum)+'</span></div>'; }
     list.innerHTML=html; list.querySelectorAll(".row[data-id]").forEach(function(b){ b.addEventListener("click",function(){ var t=b.getAttribute("data-type"),id=b.getAttribute("data-id"); if(income){ if(t==="exp")openEditIncOne(id); else openEditIncRec(id); } else { if(t==="exp")openEditExpense(id); else openEditRec(id); } }); });
@@ -915,6 +939,11 @@
     vf.addEventListener("touchend",function(e){ if(x0==null)return; var c=e.changedTouches[0],dx=c.clientX-x0,dy=c.clientY-y0,dt=Date.now()-t0; x0=null; if(dt>800)return; if(Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy)*1.6)return; stepPeriod(dx<0?1:-1); },{passive:true});
   })();
   el("granseg").querySelectorAll("button").forEach(function(b){ b.addEventListener("click",function(){ gran=b.getAttribute("data-g"); el("granseg").querySelectorAll("button").forEach(function(x){ x.setAttribute("aria-selected",x===b); }); lastHeroTotal=0; renderAll(true); }); });
+  el("scopetoggle").addEventListener("click",function(){ periodScope=(periodScope==="todate"?"full":"todate"); lastHeroTotal=0; renderAll(true); });
+  (function(){ var si=el("txnsearch"),cl=el("txnsearchclear"); if(!si)return;
+    si.addEventListener("input",function(){ txnQuery=si.value; if(cl)cl.hidden=!si.value; if(screen==="burn"||screen==="income") renderTxns(flowSide()); });
+    if(cl) cl.addEventListener("click",function(){ si.value=""; txnQuery=""; cl.hidden=true; si.focus(); if(screen==="burn"||screen==="income") renderTxns(flowSide()); });
+  })();
   el("diveseg").querySelectorAll("button").forEach(function(b){ b.addEventListener("click",function(){ diveSide=b.getAttribute("data-s"); el("trendcat").value=""; renderCatDive(true); el("diveseg").querySelectorAll("button").forEach(function(x){x.setAttribute("aria-selected",x===b);}); }); });
   el("tab-burn").addEventListener("click",function(){ setScreen("burn"); });
   el("tab-income").addEventListener("click",function(){ setScreen("income"); });
@@ -1213,6 +1242,7 @@ var XLSXm = (function () {
   (function(){ var t=null; try{ t=localStorage.getItem(THEME_KEY); }catch(e){} if(t!=="light"&&t!=="sepia"&&t!=="night"){ t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme:dark)").matches)?"night":"light"; } applyTheme(t); })();
   (function firstPaint(){ var local=readLocal(); setStateFrom(migrate(hasData(local)?local:sampleState())); dataSource=hasData(local)?"local":"sample"; rebuildSelects(); renderCatChips(); setNav(); renderAll(true); })();
   initDB(); setupMic();
+  (function(){ try{ var p=new URLSearchParams(location.search).get("add"); if(p==="expense"||p==="income") setTimeout(function(){ openAdd(p,"oneoff"); },260); }catch(e){} })();
 })();
 </script>
 
