@@ -1084,9 +1084,20 @@ var XLSXm = (function () {
   /* ---- Excel (.xlsx) import/export — runs on device, nothing leaves ---- */
   function pad2(n){ return String(n).padStart(2,"0"); }
   function buildYM(y,mo){ y=parseInt(String(y==null?"":y).replace(/[^0-9]/g,""),10); mo=parseInt(String(mo==null?"":mo).replace(/[^0-9]/g,""),10); if(!y||!mo||mo<1||mo>12)return null; if(y<100)y=2000+y; return y+"-"+pad2(mo); }
+  function excelSerialToYM(n){ if(!(n>=20000&&n<=60000))return null; var ms=Math.round(n)*86400000+Date.UTC(1899,11,30); var d=new Date(ms); return d.getUTCFullYear()+"-"+pad2(d.getUTCMonth()+1); }
+  function resolveYM(v){ v=String(v==null?"":v).trim(); if(!v)return null;
+    if(/^\d+(\.\d+)?$/.test(v)){ return excelSerialToYM(parseFloat(v)); }            // real Excel date (serial)
+    var y=pYM(v); if(y)return y;                                                       // "May 25", "May 2025", "2025-05", "05/25"
+    var m=v.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);                       // dd/mm/yyyy (Indian day-first)
+    if(m){ var a=+m[1],b=+m[2],yy=m[3]; if(yy.length===2)yy="20"+yy; var mo=(a>12&&b<=12)?a:b; if(mo>=1&&mo<=12)return yy+"-"+pad2(mo); }
+    var m2=v.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/);                        // yyyy-mm-dd
+    if(m2)return m2[1]+"-"+pad2(+m2[2]);
+    return null; }
   function ymLabel(ym){ if(!ym)return ""; var p=String(ym).split("-"); return MON[(+p[1]-1)]+" "+String(p[0]).slice(2); }
   function newId(p){ return p+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
   function hdrMap(rs){ var hdr=null,start=0; if(pHeader(rs[0])){ hdr=rs[0].map(function(h){return String(h).toLowerCase().trim();}); start=1; } function col(subs,def){ if(hdr){ for(var i=0;i<hdr.length;i++)for(var j=0;j<subs.length;j++){ if(hdr[i].indexOf(subs[j])>-1)return i; } } return def; } return {hdr:hdr,start:start,col:col}; }
+  var impStats={undated:0};
+  function pickDateCol(rs,start,chosen,skip){ var hit=0,i; for(i=start;i<rs.length;i++){ if(resolveYM(rs[i][chosen]))hit++; } if(hit>0)return chosen; var best=-1,bestc=chosen,cols=(rs[start]||[]).length; for(var c=0;c<cols;c++){ if(c===skip)continue; var h=0; for(i=start;i<rs.length;i++){ if(resolveYM(rs[i][c]))h++; } if(h>best){best=h;bestc=c;} } return best>0?bestc:chosen; }
 
   function importRows(kind,rs){
     if(!rs||!rs.length) return 0;
@@ -1097,20 +1108,22 @@ var XLSXm = (function () {
       if(!rules.length)return 0; rules.sort(function(a,b){return a.p-b.p;}); state.rules=rules.map(function(x){return {keywords:x.keywords,cat:x.cat,active:x.active};}); return rules.length;
     }
     if(kind==="expenses"||kind==="income"){
-      var ca=col(["amount"],0),cd=col(["description","desc"],1),cmo=col(["month"],2),cc=col(["category"],3),cm=col(["mm","date"],4),cy=col(["year"],5),cs=col(["source"],7);
-      for(i=start;i<rs.length;i++){ var r=rs[i]; var amt=parseNum(r[ca]); if(!(amt>0))continue; var ym=pYM(r[cm])||buildYM(r[cy],r[cmo])||nowYM(); var desc=(r[cd]||"").trim(); var cv=(r[cc]||"").trim(); var cat=cv?pCat(cv):categorize(desc); var rec={id:newId(kind==="income"?"in":"x"),amount:Math.round(amt),description:desc,category:cat,ts:pTs(ym),source:((r[cs]||"").trim()||(kind==="income"?"Income":"Quick Add"))}; (kind==="income"?state.income:state.expenses).push(rec); n++; }
+      var ca=col(["amount"],0),cd=col(["description","desc"],1),cmo=col(["month"],2),cc=col(["category"],3),cm=col(["mm","date","txn","posted","spent","when","dt"],4),cy=col(["year"],5),cs=col(["source"],7);
+      cm=pickDateCol(rs,start,cm,ca);
+      for(i=start;i<rs.length;i++){ var r=rs[i]; var amt=parseNum(r[ca]); if(!(amt>0))continue; var ym=resolveYM(r[cm])||buildYM(r[cy],r[cmo]); if(!ym){ ym=nowYM(); impStats.undated++; } var desc=(r[cd]||"").trim(); var cv=(r[cc]||"").trim(); var cat=cv?pCat(cv):categorize(desc); var rec={id:newId(kind==="income"?"in":"x"),amount:Math.round(amt),description:desc,category:cat,ts:pTs(ym),source:((r[cs]||"").trim()||(kind==="income"?"Income":"Quick Add"))}; (kind==="income"?state.income:state.expenses).push(rec); n++; }
       return n;
     }
     if(kind==="recurring"||kind==="increc"){
       var d0=col(["description"],0),t0=col(["type"],1),a0=col(["amount"],2),s0=col(["start"],3),e0=col(["end"],4),p0=col(["period"],5),c0=col(["category"],6),m0=col(["monthly"],7);
       if(kind==="increc"){ d0=col(["description"],0); a0=col(["amount"],1); s0=col(["start"],2); e0=col(["end"],3); c0=col(["category"],4); m0=col(["monthly"],5); t0=-1; p0=-1; }
-      for(i=start;i<rs.length;i++){ var rr=rs[i]; var monthly=parseNum(rr[m0]),amount=parseNum(rr[a0]); if(!(monthly>0)&&!(amount>0))continue; var ak=(t0>=0&&/amort/i.test(rr[t0]||""))?"amortized":"recurring"; var per=(p0>=0?parseInt(rr[p0],10):0)||null; var mo=monthly>0?monthly:(ak==="amortized"&&per?Math.round(amount/per):amount); var dsc=(rr[d0]||"Recurring").trim(); var cv2=(rr[c0]||"").trim(); var obj={id:newId(kind==="increc"?"im":"r"),kind:ak,description:dsc,category:cv2?pCat(cv2):categorize(dsc),monthly:Math.round(mo),total:ak==="amortized"?Math.round(amount):null,periods:per,startYM:pYM(rr[s0])||nowYM(),endYM:pYM(rr[e0]),account:""}; (kind==="increc"?state.incomeRecurring:state.recurring).push(obj); n++; }
+      for(i=start;i<rs.length;i++){ var rr=rs[i]; var monthly=parseNum(rr[m0]),amount=parseNum(rr[a0]); if(!(monthly>0)&&!(amount>0))continue; var ak=(t0>=0&&/amort/i.test(rr[t0]||""))?"amortized":"recurring"; var per=(p0>=0?parseInt(rr[p0],10):0)||null; var mo=monthly>0?monthly:(ak==="amortized"&&per?Math.round(amount/per):amount); var dsc=(rr[d0]||"Recurring").trim(); var cv2=(rr[c0]||"").trim(); var obj={id:newId(kind==="increc"?"im":"r"),kind:ak,description:dsc,category:cv2?pCat(cv2):categorize(dsc),monthly:Math.round(mo),total:ak==="amortized"?Math.round(amount):null,periods:per,startYM:resolveYM(rr[s0])||nowYM(),endYM:resolveYM(rr[e0]),account:""}; (kind==="increc"?state.incomeRecurring:state.recurring).push(obj); n++; }
       return n;
     }
     return 0;
   }
 
   function importWorkbook(sheets,domain){
+    impStats.undated=0;
     var ordered=sheets.slice().sort(function(a,b){ var ar=/engine|rule/i.test(a.name)?0:1, br=/engine|rule/i.test(b.name)?0:1; return ar-br; });
     var total=0, kinds={};
     ordered.forEach(function(sh){ var s=(sh.name||"").toLowerCase(); var kind=null;
@@ -1119,7 +1132,7 @@ var XLSXm = (function () {
       else if(/income|expense|burn|spend|data/.test(s)) kind=(domain==="income"?"income":"expenses");
       if(kind){ var c=importRows(kind,sh.rows); total+=c; kinds[kind]=(kinds[kind]||0)+c; }
     });
-    return {total:total,kinds:kinds};
+    return {total:total,kinds:kinds,undated:impStats.undated};
   }
 
   function finalizeImport(res,domain){
@@ -1127,7 +1140,7 @@ var XLSXm = (function () {
     selYM=nowYM(); screen=(domain==="income"?"income":"burn"); if(typeof setNav==="function")setNav(); renderAll(true);
     if(!res.total){ toast("No rows found — check the tab names & header row"); return; }
     var bits=[]; if(res.kinds.rules)bits.push(res.kinds.rules+" rules"); if(res.kinds.expenses)bits.push(res.kinds.expenses+" expenses"); if(res.kinds.recurring)bits.push(res.kinds.recurring+" recurring"); if(res.kinds.income)bits.push(res.kinds.income+" income"); if(res.kinds.increc)bits.push(res.kinds.increc+" monthly income");
-    toast("Imported "+bits.join(" · "));
+    toast("Imported "+bits.join(" · ")+(res.undated?(" · "+res.undated+" had no clear date"):""));
   }
 
   function readXlsx(file,domain){
