@@ -77,6 +77,11 @@
   .sortseg{margin:10px 16px 2px}
   .sortseg button{font-size:12.5px;padding:6px 4px}
   .sortseg .sar{font-size:11px;margin-left:1px}
+  .ver{font-size:10.5px;font-weight:600;color:var(--ink-4);margin-left:5px;letter-spacing:.02em;top:-.6em}
+  .emptybox{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:9px;padding:34px 22px}
+  .emptybox svg{width:30px;height:30px;color:var(--ink-4);opacity:.6;flex:none}
+  .emptybox p{margin:0;font-size:14.5px;font-weight:600;color:var(--ink-2);line-height:1.4;max-width:250px}
+  .emptybox .sub{font-size:12.5px;font-weight:500;color:var(--ink-4);max-width:250px;line-height:1.45}
   .seg{display:flex;background:var(--seg-bg);padding:2px;border-radius:9px}
   .seg button{flex:1;border:none;background:transparent;color:var(--ink-2);font-weight:600;font-size:13px;padding:7px 6px;border-radius:7px;transition:all .18s var(--ease);white-space:nowrap}
   .seg button[aria-selected="true"]{background:var(--seg-sel);color:var(--ink);box-shadow:var(--seg-shadow)}
@@ -312,7 +317,7 @@
 <div class="app">
   <header class="top">
     <div class="titlerow">
-      <h1>Ledger</h1>
+      <h1>Ledger<sup class="ver">v1.2</sup></h1>
       <div class="stepper">
         <button id="prevm" aria-label="Previous"><svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <div class="lab" id="perlab" aria-live="polite"><b>—</b></div>
@@ -443,7 +448,7 @@
 <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
       <div class="foldbody"><p class="note">Export a file to back up or move all your data (income + spending), then import it anywhere. Google Sheets sync can't run inside the app, so this file is how data moves in and out.</p><div class="datarow"><button class="btn" id="expjson"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Export JSON</button><button class="btn ghost" id="expcsv"><svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4zM4 9h16M9 9v11" stroke="currentColor" stroke-width="1.8"/></svg>Export CSV</button></div><div class="datarow" style="margin-top:10px"><button class="btn ghost" id="impbtn"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21V9m0 0l-4 4m4-4l4 4M5 3h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Import from file</button><input type="file" id="impfile" accept=".json,application/json" hidden></div></div>
     </details>
-    <p class="foot">Ledger · income &amp; burn · imported from your Google Sheet</p>
+    <p class="foot">Ledger <b>v1.2</b> · your data stays on this device</p>
   </div>
 </div>
 
@@ -660,7 +665,7 @@
   function renderCategory(side,animate){
     var a=periodAgg(side),cats=sideOf(side).c,rows=[]; Object.keys(a.byCat).forEach(function(c){ var v=a.byCat[c].daily+a.byCat[c].rec; if(v>0)rows.push({cat:c,value:v}); }); rows.sort(function(x,y){return y.value-x.value;});
     var dwrap=el("donut"),lbox=el("catlines"),months=bmonths(gran,selStart());
-    if(!rows.length){ dwrap.parentNode.style.display="none"; lbox.innerHTML='<div class="emptybox"><svg viewBox="0 0 24 24" fill="none"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><p>Nothing for '+blabel(gran,selStart())+' yet.</p></div>'; return; }
+    if(!rows.length){ dwrap.parentNode.style.display="none"; lbox.innerHTML='<div class="emptybox"><svg viewBox="0 0 24 24" fill="none"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><p>Nothing '+(side==="income"?"coming in":"spent")+' in '+blabel(gran,selStart())+' yet</p><span class="sub">Tap the + button to add '+(side==="income"?"income":"an expense")+', or swipe to another '+gran+'.</span></div>'; return; }
     dwrap.parentNode.style.display="none";
     var html=""; rows.forEach(function(r,i){ var p=pct(r.value,a.total),col=colorIn(r.cat,cats),other=(r.cat===OTHERS);
       if(other){ html+='<div class="catline" style="cursor:default"><span class="catdisc" style="background:'+col+';width:10px;height:10px;border-radius:3px;flex:none"></span><span class="cn"><span class="t">Others <span style="color:var(--ink-4);font-weight:500;font-size:12px">· hidden</span></span><span class="bar"><i style="width:'+p+'%;background:'+col+'"></i></span></span><span class="cv"><b class="tnum">'+money(r.value)+'</b><small>'+p+'%</small></span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="color:var(--ink-4)"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2"/></svg></div>'; }
@@ -670,7 +675,7 @@
     lbox.querySelectorAll(".catline[data-cat]").forEach(function(b){ b.addEventListener("click",function(){ var i=b.getAttribute("data-i"),cat=b.getAttribute("data-cat"),drill=el("drill-"+i),open=b.getAttribute("aria-expanded")==="true"; if(open){ b.setAttribute("aria-expanded","false"); drill.hidden=true; } else { b.setAttribute("aria-expanded","true"); drill.innerHTML=drillHtml(side,cat,months); drill.hidden=false; } }); });
   }
   function cmpTxn(a,b){ var k=txnSort.key,r; if(k==="amount")r=a.amount-b.amount; else if(k==="cat")r=String(a.cat).localeCompare(String(b.cat))||(a.ts-b.ts); else if(k==="name")r=String(a.desc||a.cat).localeCompare(String(b.desc||b.cat))||(a.ts-b.ts); else r=a.ts-b.ts; return txnSort.dir==="asc"?r:-r; }
-  function renderSortBar(side){ var box=el("txnsort"); if(!box)return; var opts=[["date","Date"],["amount","Amount"],["cat","Category"],["name","Name"]]; box.innerHTML=opts.map(function(o){ var on=txnSort.key===o[0]; return '<button data-k="'+o[0]+'" aria-selected="'+on+'">'+o[1]+(on?' <span class="sar">'+(txnSort.dir==="asc"?"↑":"↓")+'</span>':'')+'</button>'; }).join(""); box.querySelectorAll("button").forEach(function(b){ b.addEventListener("click",function(){ var k=b.getAttribute("data-k"); if(txnSort.key===k) txnSort.dir=(txnSort.dir==="asc"?"desc":"asc"); else { txnSort.key=k; txnSort.dir=(k==="cat"||k==="name")?"asc":"desc"; } renderTxns(side); }); }); }
+  function renderSortBar(side){ var box=el("txnsort"); if(!box)return; box.hidden=false; var opts=[["date","Date"],["amount","Amount"],["cat","Category"],["name","Name"]]; box.innerHTML=opts.map(function(o){ var on=txnSort.key===o[0]; return '<button data-k="'+o[0]+'" aria-selected="'+on+'">'+o[1]+(on?' <span class="sar">'+(txnSort.dir==="asc"?"↑":"↓")+'</span>':'')+'</button>'; }).join(""); box.querySelectorAll("button").forEach(function(b){ b.addEventListener("click",function(){ var k=b.getAttribute("data-k"); if(txnSort.key===k) txnSort.dir=(txnSort.dir==="asc"?"desc":"asc"); else { txnSort.key=k; txnSort.dir=(k==="cat"||k==="name")?"asc":"desc"; } renderTxns(side); }); }); }
   function renderTxns(side){
     var ms=bmonths(gran,selStart()),d=sideOf(side),cats=d.c,income=side==="income",items=[],othersSum=0,othersCount=0;
     d.e.forEach(function(e){ if(ms.indexOf(ymOf(e.ts))>-1){ if(isCatHidden(side,e.category)){ othersSum+=e.amount; othersCount++; } else items.push({type:"exp",ref:e,cat:e.category,desc:e.description,amount:e.amount,ts:e.ts}); } });
@@ -680,7 +685,7 @@
     var showOthers=(!catFilter&&othersSum>0),n=shown.length+(showOthers?1:0);
     el("txnhead").textContent=catFilter?catFilter:(income?"Income":"Transactions"); el("txncount").textContent=n?n+" "+(n===1?"item":"items"):"";
     var list=el("txnlist");
-    if(!shown.length&&!showOthers){ list.innerHTML='<div class="emptybox"><svg viewBox="0 0 24 24" fill="none"><path d="M7 8h10M7 12h10M7 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><p>No '+(income?"income":"transactions")+' in '+blabel(gran,selStart())+'.</p></div>'; return; }
+    if(!shown.length&&!showOthers){ var sb0=el("txnsort"); if(sb0)sb0.hidden=true; list.innerHTML='<div class="emptybox"><svg viewBox="0 0 24 24" fill="none"><path d="M7 8h10M7 12h10M7 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><p>No '+(income?"income":"transactions")+' in '+blabel(gran,selStart())+' yet</p><span class="sub">Tap the + button to add '+(income?"income":"an expense")+', or swipe left / right to change '+gran+'.</span></div>'; return; }
     var html=""; shown.forEach(function(i){ var dt=new Date(i.ts); var tag=i.type==="recurring"?'<span class="tagr rec">'+(income?"Monthly":"Recurring")+'</span>':i.type==="amortized"?'<span class="tagr amo">Amortized</span>':''; var when=i.type==="exp"?(dt.getDate()+" "+ymShort(ymOf(i.ts))):(gran==="month"?"monthly":ymShort(i.ym)); var review=(!income&&i.cat===fallbackCat())?'<span class="tagr rev">Review</span>':''; html+='<button class="row" data-type="'+i.type+'" data-id="'+escapeHtml(i.ref.id)+'"><span class="ic" style="background:'+colorIn(i.cat,cats)+'">'+initials(i.cat)+'</span><span class="info"><span class="d">'+escapeHtml(i.desc||i.cat)+'</span><span class="m">'+tag+when+' · '+escapeHtml(i.cat)+' '+review+'</span></span><span class="amt2 tnum">'+money(i.amount)+'</span></button>'; });
     if(showOthers){ html+='<div class="row" style="cursor:default"><span class="ic" style="background:#9AA0A6"><svg viewBox="0 0 24 24" width="17" height="17" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="#fff" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="#fff" stroke-width="2"/></svg></span><span class="info"><span class="d">Others</span><span class="m">'+othersCount+' hidden '+(othersCount===1?"item":"items")+' · locked</span></span><span class="amt2 tnum">'+money(othersSum)+'</span></div>'; }
     list.innerHTML=html; list.querySelectorAll(".row[data-id]").forEach(function(b){ b.addEventListener("click",function(){ var t=b.getAttribute("data-type"),id=b.getAttribute("data-id"); if(income){ if(t==="exp")openEditIncOne(id); else openEditIncRec(id); } else { if(t==="exp")openEditExpense(id); else openEditRec(id); } }); });
@@ -1135,13 +1140,12 @@ var XLSXm = (function () {
   function importWorkbook(sheets,domain){
     impStats.undated=0;
     var ordered=sheets.slice().sort(function(a,b){ var ar=/engine|rule/i.test(a.name)?0:1, br=/engine|rule/i.test(b.name)?0:1; return ar-br; });
+    function kindOf(name){ var s=(name||"").toLowerCase(); if(/engine|rule/.test(s))return "rules"; if(/recur|amort|monthly/.test(s))return (domain==="income"?"increc":"recurring"); if(/income|expense|burn|spend|data/.test(s))return (domain==="income"?"income":"expenses"); return null; }
+    /* replace-per-tab: clear each target that has a data-bearing tab, so re-importing your file overwrites instead of stacking duplicates */
+    var reset={}; ordered.forEach(function(sh){ var k=kindOf(sh.name); if(k&&(sh.rows||[]).length>1) reset[k]=1; });
+    if(reset.expenses) state.expenses=[]; if(reset.recurring) state.recurring=[]; if(reset.income) state.income=[]; if(reset.increc) state.incomeRecurring=[];
     var total=0, kinds={};
-    ordered.forEach(function(sh){ var s=(sh.name||"").toLowerCase(); var kind=null;
-      if(/engine|rule/.test(s)) kind="rules";
-      else if(/recur|amort|monthly/.test(s)) kind=(domain==="income"?"increc":"recurring");
-      else if(/income|expense|burn|spend|data/.test(s)) kind=(domain==="income"?"income":"expenses");
-      if(kind){ var c=importRows(kind,sh.rows); total+=c; kinds[kind]=(kinds[kind]||0)+c; }
-    });
+    ordered.forEach(function(sh){ var kind=kindOf(sh.name); if(kind){ var c=importRows(kind,sh.rows); total+=c; kinds[kind]=(kinds[kind]||0)+c; } });
     return {total:total,kinds:kinds,undated:impStats.undated};
   }
 
