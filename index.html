@@ -289,6 +289,19 @@
   .eye svg{width:18px;height:18px}
   .eye[aria-pressed="true"]{background:var(--acc-tint);color:var(--acc);border-color:transparent}
   @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}.chartbox svg rect.gbar{transform:scaleY(1)}.splitbar i,.catline .cn .bar i{transition:none}}
+
+  html{-webkit-tap-highlight-color:transparent}
+  .navtab svg{transition:transform .2s var(--ease)}
+  .navtab:active svg{transform:scale(.86)}
+  .navtab[aria-selected="true"] svg{animation:navpop .5s var(--spring)}
+  @keyframes navpop{0%{transform:scale(.82)}55%{transform:scale(1.15)}100%{transform:scale(1)}}
+  #tab-burn[aria-selected="true"] svg{animation:flame .62s ease}
+  @keyframes flame{0%{transform:scale(.8) rotate(-5deg);opacity:.55}30%{transform:scale(1.2) rotate(4deg);opacity:1}60%{transform:scale(.95) rotate(-2deg)}100%{transform:scale(1) rotate(0)}}
+  #tab-income[aria-selected="true"] svg{animation:rise .55s var(--spring)}
+  @keyframes rise{0%{transform:translateY(5px) scale(.82)}55%{transform:translateY(-3px) scale(1.12)}100%{transform:translateY(0) scale(1)}}
+  #tab-insights[aria-selected="true"] svg{animation:navpop .5s var(--spring)}
+  #tab-settings[aria-selected="true"] svg{animation:gearspin .6s var(--ease)}
+  @keyframes gearspin{0%{transform:rotate(-45deg) scale(.85)}100%{transform:rotate(0) scale(1)}}
 </style>
 </head>
 <body>
@@ -399,16 +412,6 @@
     <details class="fold reveal d3">
       <summary><span class="lead"><span class="gi"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18M8 7h5a3 3 0 0 1 0 6H8m0 0h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Currency</span><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
       <div class="foldbody"><p class="note">Only the symbol and number format change — your data stays the same.</p><div class="curgrid" id="curgrid"></div></div>
-    </details>
-    <details class="fold reveal d3" id="fold-sync">
-      <summary><span class="lead"><span class="gi" style="background:#0F9D58"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="#fff" stroke-width="2"/><path d="M4 10h16M10 4v16" stroke="#fff" stroke-width="2"/></svg></span>Google Sheet sync</span><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
-      <div class="foldbody">
-        <p class="note">Keep a Google Sheet updated as a live backup. <b>Push</b> sends your data to the sheet; <b>Pull</b> brings back rows you added there (matched to the right categories). Paste the <b>web-app link</b> from the Apps Script you deploy on your sheet — the setup steps are in the deploy guide.</p>
-        <label class="fld" style="margin-top:0"><span class="lab">Sheet web-app link</span><input class="tf" id="sync-url" placeholder="https://script.google.com/macros/s/…/exec"></label>
-        <div class="datarow" style="margin-top:12px"><button class="btn" id="sync-push" style="background:#0F9D58"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Push to Sheet</button><button class="btn ghost" id="sync-pull"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21V9m0 0l-4 4m4-4l4 4M5 3h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Pull from Sheet</button></div>
-        <div class="privrow" style="margin-top:12px;border-top:none;padding-top:0"><span class="nm">Auto-sync after every change</span><button class="switch" id="sync-auto" role="switch" aria-checked="false" aria-label="Auto-sync"></button></div>
-        <p class="note" id="sync-status" style="margin:12px 0 0"></p>
-      </div>
     </details>
     <details class="fold reveal d3">
       <summary><span class="lead"><span class="gi"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Backup &amp; transfer</span><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
@@ -583,7 +586,7 @@
     el("herocur").textContent=sym(); renderHeader();
     if(screen==="burn"||screen==="income") renderFlow(flowSide(),animate);
     else if(screen==="insights") renderInsights(animate);
-    else if(screen==="settings"){ renderRules(); renderCatMgr(); renderRecMgr(); renderIncomeMgr(); renderIncCatMgr(); renderPrivacy(); renderSync(); renderCurGrid(); }
+    else if(screen==="settings"){ renderRules(); renderCatMgr(); renderRecMgr(); renderIncomeMgr(); renderIncCatMgr(); renderPrivacy(); renderCurGrid(); }
   }
   function periodTitle(){ return gran==="year"?"Year over year":gran==="quarter"?"Quarter over quarter":"Month over month"; }
   function renderHeader(){
@@ -893,10 +896,6 @@
   el("expcsv").addEventListener("click",exportCSV);
   el("impbtn").addEventListener("click",function(){ el("impfile").click(); });
   el("impfile").addEventListener("change",function(){ if(this.files&&this.files[0]) importFile(this.files[0]); this.value=""; });
-  el("sync-url").addEventListener("change",function(){ state.settings.sheetUrl=el("sync-url").value.trim(); queueWrite(); renderSync(); toast(state.settings.sheetUrl?"Sheet linked":"Link cleared"); });
-  el("sync-push").addEventListener("click",function(){ sheetPush(false); });
-  el("sync-pull").addEventListener("click",sheetPull);
-  el("sync-auto").addEventListener("click",function(){ state.settings.autoSync=!state.settings.autoSync; el("sync-auto").setAttribute("aria-checked",state.settings.autoSync?"true":"false"); queueWrite(); renderSync(); if(state.settings.autoSync&&sheetUrl())sheetPush(true); });
   document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&!el("scrim").hidden) showSheet(false); });
 
   /* boot */
