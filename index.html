@@ -77,16 +77,12 @@
   .scoperow{margin-top:9px;display:flex;justify-content:center}
   .scopebtn{font-size:12px;font-weight:600;color:var(--ink-3);background:var(--seg-bg);border:none;padding:6px 14px;border-radius:99px}
   .scopebtn b{color:var(--ink);font-weight:700}
-  #hero{position:sticky;top:var(--headh,116px);z-index:29;transition:padding .3s var(--ease)}
-  #hero .hfull{transition:opacity .2s var(--ease),max-height .32s var(--ease);max-height:520px;opacity:1;overflow:hidden}
-  #hero .heromini{display:flex;align-items:center;justify-content:space-between;gap:12px;max-height:0;opacity:0;overflow:hidden;transition:opacity .2s var(--ease),max-height .32s var(--ease);cursor:pointer}
-  #hero.mini{padding-top:13px;padding-bottom:13px}
-  #hero.mini .hfull{max-height:0;opacity:0}
-  #hero.mini .heromini{max-height:64px;opacity:1}
-  .heromini .hm-l{display:flex;flex-direction:column;min-width:0;gap:2px}
-  .heromini .hm-cap{font-size:10.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .heromini .hm-l b{font-size:23px;font-weight:700;letter-spacing:-.03em;line-height:1.1}
-  .heromini .hm-r{display:flex;flex-direction:column;text-align:right;gap:3px;font-size:12.5px;color:var(--ink-3);font-weight:600;white-space:nowrap}
+  .sumbar{position:fixed;left:50%;transform:translateX(-50%) translateY(-8px);top:var(--headh,112px);z-index:28;width:min(500px,calc(100% - 24px));display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 16px;border-radius:16px;background:var(--card);border:1px solid var(--sep);box-shadow:0 12px 30px -16px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s var(--ease),transform .22s var(--ease)}
+  .sumbar.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+  .sumbar .sb-l{display:flex;flex-direction:column;min-width:0;gap:2px}
+  .sumbar .sb-cap{font-size:10.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sumbar .sb-l b{font-size:22px;font-weight:700;letter-spacing:-.03em;line-height:1.05}
+  .sumbar .sb-r{display:flex;flex-direction:column;text-align:right;gap:3px;font-size:12px;color:var(--ink-3);font-weight:600;white-space:nowrap}
   .lockgate{position:fixed;inset:0;z-index:38;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:24px 24px 100px}
   .lgbox{max-width:320px;width:100%;text-align:center}
   .lgicon{width:60px;height:60px;border-radius:50%;background:var(--field);display:grid;place-items:center;margin:0 auto 16px}
@@ -397,12 +393,12 @@
     <div class="scoperow" id="scoperow" hidden><button class="scopebtn" id="scopetoggle"></button></div>
   </header>
 
+  <div class="sumbar" id="sumbar"><div class="sb-l"><span class="sb-cap" id="sb-cap">Total spend</span><b class="tnum" id="sb-total">—</b></div><div class="sb-r"><span id="sb-oneoff">One-off —</span><span id="sb-rec">Recurring —</span></div></div>
   <div class="lockgate" id="lockgate" hidden></div>
 
   <!-- FLOW (Burn or Income) -->
   <div id="view-flow">
-    <div class="group hero reveal d1" id="hero">
-      <div class="hfull">
+    <div class="group hero reveal d1">
       <div class="cap"><span id="herocap">Total spend</span> · <span id="herolabel">—</span></div>
       <div class="amt tnum"><span class="cur" id="herocur">₹</span><span id="herototalnum">0</span></div>
       <div class="sub"><span class="delta flat" id="herodelta">—</span><span class="meta" id="herometa"></span></div>
@@ -410,8 +406,6 @@
         <div class="splitbar"><i class="sd" id="split-daily"></i><i class="sr" id="split-rec"></i></div>
         <div class="splitlegend"><span><span class="sw d"></span><span id="leg-daily">One-off</span> <b id="daily-amt" class="tnum">—</b></span><span><span class="sw r"></span><span id="leg-rec">Recurring</span> <b id="rec-amt" class="tnum">—</b></span></div>
       </div>
-      </div>
-      <div class="heromini" id="heromini"><div class="hm-l"><span class="hm-cap" id="hm-cap">Total spend</span><b class="tnum" id="hm-total">—</b></div><div class="hm-r"><span id="hm-oneoff">One-off —</span><span id="hm-rec">Recurring —</span></div></div>
     </div>
     <div class="group reveal d2">
       <div class="charthd"><h2 id="momtitle">Month over month</h2><span class="hint">tap a bar</span></div>
@@ -670,6 +664,7 @@
   function isCatHidden(side,name){ if(revealed)return false; return hiddenArr(side).indexOf(name)>-1; }
   function modLocked(m){ if(revealed)return false; var L=state.settings||{}; return m==="income"?!!L.lockIncome:!!L.lockBurn; }
   function screenLocked(s){ if(revealed)return false; var L=state.settings||{}; if(s==="burn")return !!L.lockBurn; if(s==="income")return !!L.lockIncome; if(s==="insights")return !!(L.lockBurn&&L.lockIncome); return false; }
+  function safeScreen(s){ if(s==="burn"&&modLocked("burn"))return modLocked("income")?"insights":"income"; if(s==="income"&&modLocked("income"))return modLocked("burn")?"insights":"burn"; return s; }
   function visE(side){ return sideOf(side).e.filter(function(x){return !isCatHidden(side,x.category);}); }
   function visR(side){ return sideOf(side).r.filter(function(x){return !isCatHidden(side,x.category);}); }
   var OTHERS="Others";
@@ -725,7 +720,7 @@
   /* render */
   function renderAll(animate){
     el("herocur").textContent=sym(); renderHeader(); renderLockGate();
-    if(screenLocked(screen)){ var h0=el("hero"); if(h0)h0.classList.remove("mini"); return; }
+    if(screenLocked(screen)){ var sb0=el("sumbar"); if(sb0)sb0.classList.remove("show"); return; }
     if(screen==="burn"||screen==="income") renderFlow(flowSide(),animate);
     else if(screen==="insights") renderInsights(animate);
     else if(screen==="settings"){ renderRules(); renderCatMgr(); renderRecMgr(); renderIncomeMgr(); renderIncCatMgr(); renderPrivacy(); renderCurGrid(); }
@@ -757,7 +752,7 @@
     var recN=0; sideOf(side).r.forEach(function(r){ for(var qi=0;qi<cm.length;qi++){ if(recActiveIn(r,cm[qi])){ recN++; break; } } });
     var sd=el("split-daily"),sr=el("split-rec"); requestAnimationFrame(function(){ sd.style.width=(a.total>0?a.daily/a.total*100:0)+"%"; sr.style.width=(a.total>0?a.rec/a.total*100:0)+"%"; });
     el("daily-amt").innerHTML=money(a.daily)+' <span class="cnt">#'+a.count+'</span>'; el("rec-amt").innerHTML=money(a.rec)+' <span class="cnt">#'+recN+'</span>';
-    el("hm-cap").textContent=(income?"Total income":"Total spend")+" · "+blabel(gran,selStart()); el("hm-total").textContent=sym()+fmtN(a.total); el("hm-oneoff").textContent="One-off "+money(a.daily)+" · #"+a.count; el("hm-rec").textContent=(income?"Monthly ":"Recurring ")+money(a.rec)+" · #"+recN;
+    el("sb-cap").textContent=(income?"Total income":"Total spend")+" · "+blabel(gran,selStart()); el("sb-total").textContent=sym()+fmtN(a.total); el("sb-oneoff").textContent="One-off "+money(a.daily)+" · #"+a.count; el("sb-rec").textContent=(income?"Monthly ":"Recurring ")+money(a.rec)+" · #"+recN;
     el("cattitle").textContent=income?"Where it's coming from":"Where it went";
     renderMoM("momchart",side,animate);
     renderCategory(side,animate);
@@ -942,7 +937,6 @@
     var pr=el("pwremove"); if(pr) pr.addEventListener("click",function(){ state.settings.lockHash=null; queueWrite(); renderPrivacy(); toast("Password removed"); });
   }
   function tryUnlock(){ var v=el("pwtry")?el("pwtry").value:""; if(hashStr(v)===state.settings.lockHash){ revealed=true; renderPrivacy(); toast("Hidden categories revealed"); } else toast("Wrong password"); }
-  function lgTry(){ var v=el("lgpw")?el("lgpw").value:""; if(hashStr(v)===state.settings.lockHash){ revealed=true; renderAll(false); toast("Unlocked"); } else toast("Wrong password"); }
   function renderLockGate(){ var lg=el("lockgate"); if(!lg)return; if(!screenLocked(screen)){ lg.hidden=true; return; } lg.hidden=false; var nm=screen==="insights"?"Insights":(screen==="income"?"Income":"Burn");
     lg.innerHTML='<div class="lgbox"><div class="lgicon"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><h3>'+nm+' is private</h3><p>Unlock it in <b>Settings → Privacy &amp; lock</b>.</p></div>';
   }
@@ -957,7 +951,7 @@
   function amortCompute(){ var tot=parseNum(el("a-amount").value),per=parseInt(el("a-periods").value,10),c=el("a-computed"); if(tot>0&&per>0){ var mo=Math.round(tot/per),start=el("a-start").value||nowYM(),end=ymAdd(start,per-1); c.innerHTML='= <b>'+money(mo)+'/month</b> for '+per+' months · '+ymShort(start)+' → '+ymShort(end)+" "+end.split("-")[0]; return {mo:mo,end:end}; } c.textContent="Enter a total and number of months."; return null; }
   function validate(){ var ok=false; if(addDomain==="expense"){ if(addType==="oneoff"){ var p=parseEntry(el("entry").value); ok=(p.amount!=null&&p.amount>0); } else if(addType==="recurring"){ ok=parseNum(el("r-amount").value)>0&&el("r-desc").value.trim()&&el("r-start").value; } else { var t=parseNum(el("a-amount").value),pr=parseInt(el("a-periods").value,10); ok=t>0&&pr>0&&el("a-desc").value.trim()&&el("a-start").value; } } else { if(addType==="oneoff"){ ok=parseNum(el("i-amount").value)>0&&el("i-date").value; } else { ok=parseNum(el("im-amount").value)>0&&el("im-desc").value.trim()&&el("im-start").value; } } el("savebtn").disabled=!ok; }
   function saveLabel(){ if(editId||editRecId||editIncId||editIncRecId)return "Save changes"; if(addDomain==="income")return "Save income"; return addType==="oneoff"?"Save expense":addType==="recurring"?"Save recurring":"Save amortized"; }
-  function setDomain(d){ addDomain=d; el("domainseg").querySelectorAll("button").forEach(function(b){ b.setAttribute("aria-selected",b.getAttribute("data-d")===d); }); setType("oneoff"); }
+  function setDomain(d){ if(d==="income"&&modLocked("income"))d="expense"; if(d==="expense"&&modLocked("burn"))d="income"; addDomain=d; el("domainseg").querySelectorAll("button").forEach(function(b){ var dd=b.getAttribute("data-d"); b.style.display=((dd==="income"&&modLocked("income"))||(dd==="expense"&&modLocked("burn")))?"none":""; b.setAttribute("aria-selected",dd===d); }); setType("oneoff"); }
   function setType(t){ addType=t; var inc=addDomain==="income"; el("typeseg").hidden=inc; el("inctypeseg").hidden=!inc; ["oneoff","recurring","amortized","inc-oneoff","inc-monthly"].forEach(function(x){ el("grp-"+x).hidden=true; }); if(!inc){ el("grp-"+t).hidden=false; el("typeseg").querySelectorAll("button").forEach(function(b){b.setAttribute("aria-selected",b.getAttribute("data-t")===t);}); } else { el("grp-"+(t==="monthly"?"inc-monthly":"inc-oneoff")).hidden=false; el("inctypeseg").querySelectorAll("button").forEach(function(b){b.setAttribute("aria-selected",b.getAttribute("data-t")===t);}); if(t==="oneoff")renderIncChips(); } el("savebtn").textContent=saveLabel(); validate(); }
   function openAdd(domain,type){ editId=editRecId=editIncId=editIncRecId=null; addAutoCat=true; addCat=fallbackCat(); incAddCat=(state.incomeCategories[0]||{name:"Other"}).name;
     el("sheettitle").textContent="Add"; el("delbtn").hidden=true;
@@ -1035,9 +1029,9 @@
   function toast(msg,label,fn){ var t=el("toast"); t.hidden=false; t.innerHTML=""; var s=document.createElement("span"); s.textContent=msg; t.appendChild(s); if(label){ var b=document.createElement("button"); b.textContent=label; b.onclick=function(){ hideToast(); if(fn)fn(); }; t.appendChild(b); } requestAnimationFrame(function(){ t.classList.add("show"); }); if(toastTimer)clearTimeout(toastTimer); toastTimer=setTimeout(hideToast,label?5000:2200); }
   function hideToast(){ var t=el("toast"); t.classList.remove("show"); setTimeout(function(){ t.hidden=true; },300); }
 
-  function setNav(){ el("view-flow").hidden=!(screen==="burn"||screen==="income"); el("view-insights").hidden=screen!=="insights"; el("view-settings").hidden=screen!=="settings"; [["tab-burn","burn"],["tab-income","income"],["tab-insights","insights"],["tab-settings","settings"]].forEach(function(p){ el(p[0]).setAttribute("aria-selected",screen===p[1]); }); var h=el("hero"); if(h&&!(screen==="burn"||screen==="income")) h.classList.remove("mini"); }
+  function setNav(){ el("view-flow").hidden=!(screen==="burn"||screen==="income"); el("view-insights").hidden=screen!=="insights"; el("view-settings").hidden=screen!=="settings"; [["tab-burn","burn"],["tab-income","income"],["tab-insights","insights"],["tab-settings","settings"]].forEach(function(p){ el(p[0]).setAttribute("aria-selected",screen===p[1]); }); var sb=el("sumbar"); if(sb&&!(screen==="burn"||screen==="income")) sb.classList.remove("show"); el("tab-burn").style.visibility=modLocked("burn")?"hidden":""; el("tab-income").style.visibility=modLocked("income")?"hidden":""; }
   function replayReveal(id){ if(REDUCE)return; var v=el(id); if(!v)return; v.querySelectorAll(".reveal").forEach(function(x){ x.style.animation="none"; void x.offsetWidth; x.style.animation=""; }); }
-  function setScreen(s){ screen=s; catFilter=null; lastHeroTotal=0; setNav(); window.scrollTo({top:0,behavior:REDUCE?"auto":"smooth"}); renderAll(true); if(s==="settings")replayReveal("view-settings"); else if(s==="insights")replayReveal("view-insights"); }
+  function setScreen(s){ s=safeScreen(s); screen=s; catFilter=null; lastHeroTotal=0; setNav(); window.scrollTo({top:0,behavior:REDUCE?"auto":"smooth"}); renderAll(true); if(s==="settings")replayReveal("view-settings"); else if(s==="insights")replayReveal("view-insights"); }
   function setupMic(){ var SR=window.SpeechRecognition||window.webkitSpeechRecognition,mic=el("micbtn"); if(!SR){ mic.hidden=true; return; } mic.hidden=false; var rec; try{ rec=new SR(); }catch(e){ mic.hidden=true; return; } rec.lang="en-IN"; rec.interimResults=true; rec.continuous=false; var listening=false; mic.addEventListener("click",function(){ if(listening){ try{rec.stop();}catch(e){} return; } try{ rec.start(); }catch(e){ toast("Couldn't start mic"); } }); rec.onstart=function(){ listening=true; mic.classList.add("rec"); }; rec.onend=function(){ listening=false; mic.classList.remove("rec"); }; rec.onerror=function(){ listening=false; mic.classList.remove("rec"); toast("Mic unavailable — type it"); }; rec.onresult=function(ev){ var txt=""; for(var i=0;i<ev.results.length;i++) txt+=ev.results[i][0].transcript; el("entry").value=txt; addAutoCat=true; updatePreview(); }; }
 
   /* events */
@@ -1062,10 +1056,9 @@
     node.addEventListener("touchstart",function(e){ if(e.touches.length!==1){x0=null;return;} x0=e.touches[0].clientX; y0=e.touches[0].clientY; t0=Date.now(); },{passive:true});
     node.addEventListener("touchend",function(e){ if(x0==null)return; var c=e.changedTouches[0],dx=c.clientX-x0,dy=c.clientY-y0,dt=Date.now()-t0; x0=null; if(dt>800)return; if(Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy)*1.6)return; stepPeriod(dx<0?1:-1); },{passive:true}); }
   attachSwipe(el("view-flow")); attachSwipe(el("view-insights"));
-  var _miniOn=false;
-  window.addEventListener("scroll",function(){ var h=el("hero"); if(!h)return; var can=(screen==="burn"||screen==="income")&&!screenLocked(screen),y=window.scrollY; if(can&&!_miniOn&&y>150){ _miniOn=true; h.classList.add("mini"); } else if(_miniOn&&(y<80||!can)){ _miniOn=false; h.classList.remove("mini"); } },{passive:true});
+  window.addEventListener("scroll",function(){ var sb=el("sumbar"); if(!sb)return; sb.classList.toggle("show",(screen==="burn"||screen==="income")&&!screenLocked(screen)&&window.scrollY>150); },{passive:true});
   window.addEventListener("resize",function(){ var hd=document.querySelector("header.top"); if(hd&&getComputedStyle(hd).display!=="none"){ var to=parseFloat(getComputedStyle(hd).top)||0; document.documentElement.style.setProperty("--headh",(to+hd.offsetHeight)+"px"); } },{passive:true});
-  el("heromini").addEventListener("click",function(){ window.scrollTo({top:0,behavior:REDUCE?"auto":"smooth"}); });
+  el("sumbar").addEventListener("click",function(){ window.scrollTo({top:0,behavior:REDUCE?"auto":"smooth"}); });
   el("granseg").querySelectorAll("button").forEach(function(b){ b.addEventListener("click",function(){ gran=b.getAttribute("data-g"); el("granseg").querySelectorAll("button").forEach(function(x){ x.setAttribute("aria-selected",x===b); }); lastHeroTotal=0; renderAll(false); }); });
   el("scopetoggle").addEventListener("click",function(){ periodScope=(periodScope==="todate"?"full":"todate"); lastHeroTotal=0; renderAll(false); });
   (function(){ var si=el("txnsearch"),cl=el("txnsearchclear"); if(!si)return;
@@ -1401,7 +1394,7 @@ var XLSXm = (function () {
 
   /* boot */
   (function(){ var t=null; try{ t=localStorage.getItem(THEME_KEY); }catch(e){} if(t!=="light"&&t!=="sepia"&&t!=="night"){ t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme:dark)").matches)?"night":"light"; } applyTheme(t); })();
-  (function firstPaint(){ var local=readLocal(); setStateFrom(migrate(hasData(local)?local:sampleState())); dataSource=hasData(local)?"local":"sample"; rebuildSelects(); renderCatChips(); setNav(); renderAll(true); })();
+  (function firstPaint(){ var local=readLocal(); setStateFrom(migrate(hasData(local)?local:sampleState())); dataSource=hasData(local)?"local":"sample"; screen=safeScreen(screen); rebuildSelects(); renderCatChips(); setNav(); renderAll(true); })();
   initDB(); setupMic();
   (function(){ try{ var p=new URLSearchParams(location.search).get("add"); if(p==="expense"||p==="income") setTimeout(function(){ openAdd(p,"oneoff"); },260); }catch(e){} })();
 })();
