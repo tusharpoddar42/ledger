@@ -77,7 +77,7 @@
   .scoperow{margin-top:9px;display:flex;justify-content:center}
   .scopebtn{font-size:12px;font-weight:600;color:var(--ink-3);background:var(--seg-bg);border:none;padding:6px 14px;border-radius:99px}
   .scopebtn b{color:var(--ink);font-weight:700}
-  #hero{position:sticky;top:0;z-index:30;transition:padding .3s var(--ease)}
+  #hero{position:sticky;top:var(--headh,116px);z-index:29;transition:padding .3s var(--ease)}
   #hero .hfull{transition:opacity .2s var(--ease),max-height .32s var(--ease);max-height:520px;opacity:1;overflow:hidden}
   #hero .heromini{display:flex;align-items:center;justify-content:space-between;gap:12px;max-height:0;opacity:0;overflow:hidden;transition:opacity .2s var(--ease),max-height .32s var(--ease);cursor:pointer}
   #hero.mini{padding-top:13px;padding-bottom:13px}
@@ -737,7 +737,7 @@
     el("prevm").disabled=ymCmp(selStart(),minS)<=0; el("nextm").disabled=ymCmp(selStart(),maxS)>=0;
     el("momtitle").textContent=periodTitle();
     var sr=el("scoperow"); if(sr){ var fut=bmonths(gran,selStart()).filter(function(ym){return ymCmp(ym,nowYM())>0;}).length>0; if(gran==="month"||!fut){ sr.hidden=true; } else { sr.hidden=false; el("scopetoggle").innerHTML=(periodScope==="todate"?'Up to today · <b>tap to show what’s ahead</b>':'Incl. what’s ahead · <b>tap for up to today</b>'); } }
-    document.querySelector("header.top").style.display=screen==="settings"?"none":"block";
+    var hd=document.querySelector("header.top"); hd.style.display=screen==="settings"?"none":"block"; if(screen!=="settings"){ var to=parseFloat(getComputedStyle(hd).top)||0; document.documentElement.style.setProperty("--headh",(to+hd.offsetHeight)+"px"); }
   }
   function setDelta(d,cur,prev,label){ if(prev>0&&cur!==prev){ var ch=(cur-prev)/prev*100,up=ch>0; d.className="delta "+(up?"up":"down"); d.textContent=(up?"↑ ":"↓ ")+Math.abs(Math.round(ch))+"% vs "+label; } else if(prev>0){ d.className="delta flat"; d.textContent="no change"; } else { d.className="delta flat"; d.textContent="new"; } }
 
@@ -944,8 +944,7 @@
   function tryUnlock(){ var v=el("pwtry")?el("pwtry").value:""; if(hashStr(v)===state.settings.lockHash){ revealed=true; renderPrivacy(); toast("Hidden categories revealed"); } else toast("Wrong password"); }
   function lgTry(){ var v=el("lgpw")?el("lgpw").value:""; if(hashStr(v)===state.settings.lockHash){ revealed=true; renderAll(false); toast("Unlocked"); } else toast("Wrong password"); }
   function renderLockGate(){ var lg=el("lockgate"); if(!lg)return; if(!screenLocked(screen)){ lg.hidden=true; return; } lg.hidden=false; var nm=screen==="insights"?"Insights":(screen==="income"?"Income":"Burn");
-    lg.innerHTML='<div class="lgbox"><div class="lgicon"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><h3>'+nm+' is private</h3><p>This is locked. Unlock it in <b>Settings → Privacy &amp; lock</b>.</p><button class="btn wide" id="lggo">Open Privacy &amp; lock</button></div>';
-    el("lggo").addEventListener("click",function(){ setScreen("settings"); setTimeout(function(){ var f=el("fold-privacy"); if(f){ f.open=true; f.scrollIntoView({behavior:REDUCE?"auto":"smooth",block:"start"}); } },100); });
+    lg.innerHTML='<div class="lgbox"><div class="lgicon"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><h3>'+nm+' is private</h3><p>Unlock it in <b>Settings → Privacy &amp; lock</b>.</p></div>';
   }
   function renderSync(){ var u=el("sync-url"); if(!u)return; if(document.activeElement!==u) u.value=state.settings.sheetUrl||""; var sw=el("sync-auto"); if(sw) sw.setAttribute("aria-checked",state.settings.autoSync?"true":"false"); var st=el("sync-status"); if(st) st.textContent= sheetUrl()?(state.settings.autoSync?"Auto-sync is on — every change pushes to your sheet.":"Linked. Use Push or Pull, or turn on auto-sync."):"Not linked yet — paste your sheet's web-app link above."; }
   function rebuildSelects(){ var eo=state.categories.map(function(c){return '<option>'+escapeHtml(c.name)+'</option>';}).join(""),io=state.incomeCategories.map(function(c){return '<option>'+escapeHtml(c.name)+'</option>';}).join(""); [["rc",eo],["r-cat",eo],["a-cat",eo],["fallbackSel",eo],["im-cat",io]].forEach(function(pair){ var s=el(pair[0]); if(!s)return; var v=s.value; s.innerHTML=pair[1]; if(pair[0]==="fallbackSel"){ s.value=state.settings.fallbackCat; } else if(v) s.value=v; }); }
@@ -1063,7 +1062,9 @@
     node.addEventListener("touchstart",function(e){ if(e.touches.length!==1){x0=null;return;} x0=e.touches[0].clientX; y0=e.touches[0].clientY; t0=Date.now(); },{passive:true});
     node.addEventListener("touchend",function(e){ if(x0==null)return; var c=e.changedTouches[0],dx=c.clientX-x0,dy=c.clientY-y0,dt=Date.now()-t0; x0=null; if(dt>800)return; if(Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy)*1.6)return; stepPeriod(dx<0?1:-1); },{passive:true}); }
   attachSwipe(el("view-flow")); attachSwipe(el("view-insights"));
-  window.addEventListener("scroll",function(){ var h=el("hero"); if(!h)return; h.classList.toggle("mini",(screen==="burn"||screen==="income")&&!screenLocked(screen)&&window.scrollY>140); },{passive:true});
+  var _miniOn=false;
+  window.addEventListener("scroll",function(){ var h=el("hero"); if(!h)return; var can=(screen==="burn"||screen==="income")&&!screenLocked(screen),y=window.scrollY; if(can&&!_miniOn&&y>150){ _miniOn=true; h.classList.add("mini"); } else if(_miniOn&&(y<80||!can)){ _miniOn=false; h.classList.remove("mini"); } },{passive:true});
+  window.addEventListener("resize",function(){ var hd=document.querySelector("header.top"); if(hd&&getComputedStyle(hd).display!=="none"){ var to=parseFloat(getComputedStyle(hd).top)||0; document.documentElement.style.setProperty("--headh",(to+hd.offsetHeight)+"px"); } },{passive:true});
   el("heromini").addEventListener("click",function(){ window.scrollTo({top:0,behavior:REDUCE?"auto":"smooth"}); });
   el("granseg").querySelectorAll("button").forEach(function(b){ b.addEventListener("click",function(){ gran=b.getAttribute("data-g"); el("granseg").querySelectorAll("button").forEach(function(x){ x.setAttribute("aria-selected",x===b); }); lastHeroTotal=0; renderAll(false); }); });
   el("scopetoggle").addEventListener("click",function(){ periodScope=(periodScope==="todate"?"full":"todate"); lastHeroTotal=0; renderAll(false); });
