@@ -82,6 +82,13 @@
   .ministat .mrow{width:100%;max-width:500px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(9px + env(safe-area-inset-top,0px)) 20px 9px;background:var(--card);border-bottom:1px solid var(--sep);box-shadow:0 8px 18px -14px rgba(0,0,0,.6);pointer-events:auto}
   .ministat .ml{font-size:13px;font-weight:600;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ministat .mv{font-size:16.5px;font-weight:700;letter-spacing:-.02em;white-space:nowrap}
+  .lockgate{position:fixed;inset:0;z-index:38;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:24px 24px 100px}
+  .lgbox{max-width:320px;width:100%;text-align:center}
+  .lgicon{width:60px;height:60px;border-radius:50%;background:var(--field);display:grid;place-items:center;margin:0 auto 16px}
+  .lgicon svg{width:28px;height:28px;color:var(--ink-3)}
+  .lgbox h3{margin:0 0 6px;font-size:20px;font-weight:700}
+  .lgbox p{margin:0 0 18px;font-size:14px;color:var(--ink-3);line-height:1.5}
+  .lgbox .pwarea{display:flex;gap:9px}.lgbox .pwarea input{flex:1}
   .sortseg{margin:10px 16px 2px}
   .sortseg button{font-size:12.5px;padding:6px 4px}
   .sortseg .sar{font-size:11px;margin-left:1px}
@@ -350,6 +357,7 @@
   @keyframes navpop{0%{transform:scale(.82)}55%{transform:scale(1.15)}100%{transform:scale(1)}}
   #tab-burn[aria-selected="true"] svg{animation:flame .62s ease}
   @keyframes flame{0%{transform:scale(.8) rotate(-5deg);opacity:.55}30%{transform:scale(1.2) rotate(4deg);opacity:1}60%{transform:scale(.95) rotate(-2deg)}100%{transform:scale(1) rotate(0)}}
+  @keyframes burnflick{0%{transform:scale(1) rotate(0)}12%{transform:scale(1.18) rotate(-5deg);color:#ff7a18;filter:drop-shadow(0 0 5px rgba(255,106,0,.75))}26%{transform:scale(1.03) rotate(4deg);color:#ffab3a}40%{transform:scale(1.22) rotate(-3deg);color:#ff5722;filter:drop-shadow(0 0 8px rgba(255,120,0,.85))}56%{transform:scale(1.06) rotate(3deg);color:#ff8a00}72%{transform:scale(1.15) rotate(-1deg);filter:drop-shadow(0 0 4px rgba(255,106,0,.6))}88%{transform:scale(1.04) rotate(1deg)}100%{transform:scale(1) rotate(0);filter:none}}
   #tab-income[aria-selected="true"] svg{animation:rise .55s var(--spring)}
   @keyframes rise{0%{transform:translateY(5px) scale(.82)}55%{transform:translateY(-3px) scale(1.12)}100%{transform:translateY(0) scale(1)}}
   #tab-insights[aria-selected="true"] svg{animation:navpop .5s var(--spring)}
@@ -384,7 +392,8 @@
     <div class="scoperow" id="scoperow" hidden><button class="scopebtn" id="scopetoggle"></button></div>
   </header>
 
-  <div class="ministat" id="ministat" hidden><div class="mrow"><span class="ml" id="mini-lab">—</span><span class="mv tnum" id="mini-val">—</span></div></div>
+  <div class="ministat" id="ministat"><div class="mrow"><span class="ml" id="mini-lab">—</span><span class="mv tnum" id="mini-val">—</span></div></div>
+  <div class="lockgate" id="lockgate" hidden></div>
 
   <!-- FLOW (Burn or Income) -->
   <div id="view-flow">
@@ -652,6 +661,7 @@
   function hashStr(s){ var h=5381,i=s.length; while(i)h=(h*33)^s.charCodeAt(--i); return (h>>>0).toString(36); }
   function hiddenArr(side){ return (side==="income"?state.settings.hiddenInc:state.settings.hiddenExp)||[]; }
   function isCatHidden(side,name){ if(revealed)return false; return hiddenArr(side).indexOf(name)>-1; }
+  function screenLocked(s){ if(revealed)return false; var L=state.settings||{}; if(s==="burn")return !!L.lockBurn; if(s==="income")return !!L.lockIncome; if(s==="insights")return !!(L.lockBurn||L.lockIncome); return false; }
   function visE(side){ return sideOf(side).e.filter(function(x){return !isCatHidden(side,x.category);}); }
   function visR(side){ return sideOf(side).r.filter(function(x){return !isCatHidden(side,x.category);}); }
   var OTHERS="Others";
@@ -683,7 +693,7 @@
     out.categories=(Array.isArray(obj.categories)&&obj.categories.length)?obj.categories.map(function(c){return {name:c.name,color:c.color||PALETTE[0]};}):DEFAULT_CATS.slice();
     out.incomeCategories=(Array.isArray(obj.incomeCategories)&&obj.incomeCategories.length)?obj.incomeCategories.map(function(c){return {name:c.name,color:c.color||PALETTE[0]};}):DEFAULT_INCOME_CATS.slice();
     var s=obj.settings||{},cur=s.currency; if(!cur||typeof cur==="string")cur=CURRENCIES[0]; else if(!cur.locale){ var f=CURRENCIES.filter(function(c){return c.code===cur.code;})[0]; cur=f||CURRENCIES[0]; }
-    out.settings={currency:cur,fallbackCat:s.fallbackCat||"Needs Review",hiddenExp:Array.isArray(s.hiddenExp)?s.hiddenExp.slice():[],hiddenInc:Array.isArray(s.hiddenInc)?s.hiddenInc.slice():[],lockHash:s.lockHash||null,sheetUrl:s.sheetUrl||"",autoSync:!!s.autoSync}; out._sample=!!obj._sample;
+    out.settings={currency:cur,fallbackCat:s.fallbackCat||"Needs Review",hiddenExp:Array.isArray(s.hiddenExp)?s.hiddenExp.slice():[],hiddenInc:Array.isArray(s.hiddenInc)?s.hiddenInc.slice():[],lockHash:s.lockHash||null,lockBurn:!!s.lockBurn,lockIncome:!!s.lockIncome,sheetUrl:s.sheetUrl||"",autoSync:!!s.autoSync}; out._sample=!!obj._sample;
     var have={}; out.categories.forEach(function(c){have[c.name]=1;}); function need(n){ if(n&&!have[n]){ out.categories.push({name:n,color:PALETTE[out.categories.length%PALETTE.length]}); have[n]=1; } }
     out.expenses.forEach(function(e){need(e.category);}); out.recurring.forEach(function(r){need(r.category);}); out.rules.forEach(function(r){need(r.cat);}); need(out.settings.fallbackCat);
     var ihave={}; out.incomeCategories.forEach(function(c){ihave[c.name]=1;}); function ineed(n){ if(n&&!ihave[n]){ out.incomeCategories.push({name:n,color:PALETTE[out.incomeCategories.length%PALETTE.length]}); ihave[n]=1; } }
@@ -706,7 +716,8 @@
 
   /* render */
   function renderAll(animate){
-    el("herocur").textContent=sym(); renderHeader();
+    el("herocur").textContent=sym(); renderHeader(); renderLockGate();
+    if(screenLocked(screen)){ var ms0=el("ministat"); if(ms0)ms0.classList.remove("show"); return; }
     if(screen==="burn"||screen==="income") renderFlow(flowSide(),animate);
     else if(screen==="insights") renderInsights(animate);
     else if(screen==="settings"){ renderRules(); renderCatMgr(); renderRecMgr(); renderIncomeMgr(); renderIncCatMgr(); renderPrivacy(); renderCurGrid(); }
@@ -898,9 +909,14 @@
     html+='</div><div id="pwarea"></div>';
     if(hasPw) html+='<div style="margin-top:10px"><button class="btn ghost" id="pwremove" style="width:100%">Remove password</button></div>';
     else html+='<div class="pwarea" style="margin-top:12px"><input class="tf" id="pwset" type="password" placeholder="Set a password (optional)"><button class="btn" id="pwsave">Save</button></div>';
+    html+='<div class="privhd">Private modules</div>';
+    html+='<div class="privrow"><span class="nm">Lock Burn (spending)</span><button class="switch" role="switch" aria-checked="'+(!!state.settings.lockBurn)+'" data-mod="burn"></button></div>';
+    html+='<div class="privrow"><span class="nm">Lock Income</span><button class="switch" role="switch" aria-checked="'+(!!state.settings.lockIncome)+'" data-mod="income"></button></div>';
+    html+='<div class="note" style="padding:8px 0 0;font-size:12px;color:var(--ink-4);line-height:1.45">A locked module stays hidden until you Reveal above (or enter the password). Insights hides automatically while Burn or Income is locked.</div>';
     html+='<div class="privhd">Expense categories</div>'; state.categories.forEach(function(c){ html+=privRow("burn",c); });
     html+='<div class="privhd">Income categories</div>'; state.incomeCategories.forEach(function(c){ html+=privRow("income",c); });
     box.innerHTML=html;
+    box.querySelectorAll("[data-mod]").forEach(function(b){ b.addEventListener("click",function(){ var m=b.getAttribute("data-mod"),key=(m==="income"?"lockIncome":"lockBurn"),nm=(m==="income"?"Income":"Burn"); state.settings[key]=!state.settings[key]; queueWrite(); renderPrivacy(); toast(state.settings[key]?(nm+" locked"):(nm+" unlocked")); }); });
     box.querySelectorAll(".eye").forEach(function(b){ b.addEventListener("click",function(){ var side=b.getAttribute("data-side"),cat=b.getAttribute("data-cat"),key=side==="income"?"hiddenInc":"hiddenExp"; var arr=state.settings[key]||(state.settings[key]=[]); var i=arr.indexOf(cat); if(i>-1)arr.splice(i,1); else arr.push(cat); queueWrite(); renderPrivacy(); }); });
     var rb=el("revealbtn"); if(rb) rb.addEventListener("click",function(){ if(hasPw){ el("pwarea").innerHTML='<div class="pwarea"><input class="tf" id="pwtry" type="password" placeholder="Enter password" autofocus><button class="btn" id="pwunlock">Unlock</button></div>'; el("pwunlock").addEventListener("click",tryUnlock); el("pwtry").addEventListener("keydown",function(e){ if(e.key==="Enter")tryUnlock(); }); el("pwtry").focus(); } else { revealed=true; renderPrivacy(); toast("Hidden categories revealed"); } });
     var lb=el("lockbtn"); if(lb) lb.addEventListener("click",function(){ revealed=false; renderPrivacy(); toast("Locked"); });
@@ -908,6 +924,11 @@
     var pr=el("pwremove"); if(pr) pr.addEventListener("click",function(){ state.settings.lockHash=null; queueWrite(); renderPrivacy(); toast("Password removed"); });
   }
   function tryUnlock(){ var v=el("pwtry")?el("pwtry").value:""; if(hashStr(v)===state.settings.lockHash){ revealed=true; renderPrivacy(); toast("Hidden categories revealed"); } else toast("Wrong password"); }
+  function lgTry(){ var v=el("lgpw")?el("lgpw").value:""; if(hashStr(v)===state.settings.lockHash){ revealed=true; renderAll(false); toast("Unlocked"); } else toast("Wrong password"); }
+  function renderLockGate(){ var lg=el("lockgate"); if(!lg)return; if(!screenLocked(screen)){ lg.hidden=true; return; } lg.hidden=false; var nm=screen==="insights"?"Insights":(screen==="income"?"Income":"Burn"),hasPw=!!state.settings.lockHash;
+    lg.innerHTML='<div class="lgbox"><div class="lgicon"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><h3>'+nm+' is private</h3><p>'+(screen==="insights"?"Insights stays hidden while Burn or Income is private.":"This module is locked. Unlock to view it.")+'</p>'+(hasPw?'<div class="pwarea"><input class="tf" id="lgpw" type="password" placeholder="Enter password" autocomplete="off"><button class="btn" id="lgunlock">Unlock</button></div>':'<button class="btn wide" id="lgreveal">Unlock</button>')+'</div>';
+    if(hasPw){ el("lgunlock").addEventListener("click",lgTry); el("lgpw").addEventListener("keydown",function(e){ if(e.key==="Enter")lgTry(); }); } else el("lgreveal").addEventListener("click",function(){ revealed=true; renderAll(false); toast("Unlocked for now"); });
+  }
   function renderSync(){ var u=el("sync-url"); if(!u)return; if(document.activeElement!==u) u.value=state.settings.sheetUrl||""; var sw=el("sync-auto"); if(sw) sw.setAttribute("aria-checked",state.settings.autoSync?"true":"false"); var st=el("sync-status"); if(st) st.textContent= sheetUrl()?(state.settings.autoSync?"Auto-sync is on — every change pushes to your sheet.":"Linked. Use Push or Pull, or turn on auto-sync."):"Not linked yet — paste your sheet's web-app link above."; }
   function rebuildSelects(){ var eo=state.categories.map(function(c){return '<option>'+escapeHtml(c.name)+'</option>';}).join(""),io=state.incomeCategories.map(function(c){return '<option>'+escapeHtml(c.name)+'</option>';}).join(""); [["rc",eo],["r-cat",eo],["a-cat",eo],["fallbackSel",eo],["im-cat",io]].forEach(function(pair){ var s=el(pair[0]); if(!s)return; var v=s.value; s.innerHTML=pair[1]; if(pair[0]==="fallbackSel"){ s.value=state.settings.fallbackCat; } else if(v) s.value=v; }); }
 
@@ -1024,7 +1045,7 @@
     node.addEventListener("touchstart",function(e){ if(e.touches.length!==1){x0=null;return;} x0=e.touches[0].clientX; y0=e.touches[0].clientY; t0=Date.now(); },{passive:true});
     node.addEventListener("touchend",function(e){ if(x0==null)return; var c=e.changedTouches[0],dx=c.clientX-x0,dy=c.clientY-y0,dt=Date.now()-t0; x0=null; if(dt>800)return; if(Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy)*1.6)return; stepPeriod(dx<0?1:-1); },{passive:true}); }
   attachSwipe(el("view-flow")); attachSwipe(el("view-insights"));
-  window.addEventListener("scroll",function(){ var ms=el("ministat"); if(!ms)return; ms.classList.toggle("show",(screen==="burn"||screen==="income")&&window.scrollY>190); },{passive:true});
+  window.addEventListener("scroll",function(){ var ms=el("ministat"); if(!ms)return; ms.classList.toggle("show",(screen==="burn"||screen==="income")&&!screenLocked(screen)&&window.scrollY>190); },{passive:true});
   el("ministat").addEventListener("click",function(){ window.scrollTo({top:0,behavior:REDUCE?"auto":"smooth"}); });
   el("granseg").querySelectorAll("button").forEach(function(b){ b.addEventListener("click",function(){ gran=b.getAttribute("data-g"); el("granseg").querySelectorAll("button").forEach(function(x){ x.setAttribute("aria-selected",x===b); }); lastHeroTotal=0; renderAll(false); }); });
   el("scopetoggle").addEventListener("click",function(){ periodScope=(periodScope==="todate"?"full":"todate"); lastHeroTotal=0; renderAll(false); });
@@ -1034,7 +1055,8 @@
   })();
   el("diveseg").querySelectorAll("button").forEach(function(b){ b.addEventListener("click",function(){ diveSide=b.getAttribute("data-s"); el("trendcat").value=""; renderCatDive(true); el("diveseg").querySelectorAll("button").forEach(function(x){x.setAttribute("aria-selected",x===b);}); }); });
   function navBurst(btn,kind){ try{ if(REDUCE)return; var r=btn.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+16,n=kind==="income"?5:6,pal=["#ff8a3d","#ff6a00","#ffb347","#ff5722","#ffa000"],i; for(i=0;i<n;i++){ (function(i){ var s=document.createElement("span"),money=(kind==="income"); if(money){ s.className="burst money"; s.textContent=sym(); } else { s.className="burst flame"; s.style.color=pal[i%pal.length]; s.innerHTML='<svg viewBox="0 0 24 24"><path d="M12 2c1.7 3.3 4.3 5.2 4.3 9a4.3 4.3 0 0 1-8.6 0c0-1.5.6-2.7 1.5-3.7.1 1.7 1 2.6 1.8 2.6.6 0 .9-.5.9-1.3 0-2.3-.5-5-1.9-6.6Z" fill="currentColor"/></svg>'; } s.style.left=cx+"px"; s.style.top=cy+"px"; var dx=(Math.random()*2-1)*(money?24:12),dur=(money?620:560)+Math.random()*300,delay=i*(money?40:55); s.style.setProperty("--dx",dx+"px"); s.style.animation=(money?"floatUp ":"flameRise ")+dur+"ms ease-out "+delay+"ms forwards"; document.body.appendChild(s); setTimeout(function(){ if(s.parentNode)s.parentNode.removeChild(s); },dur+delay+140); })(i); } }catch(e){} }
-  el("tab-burn").addEventListener("click",function(){ navBurst(this,"burn"); setScreen("burn"); });
+  function burnIcon(){ if(REDUCE)return; var svg=el("tab-burn").querySelector("svg"); if(!svg)return; svg.style.animation="none"; void svg.offsetWidth; svg.style.animation="burnflick .95s ease"; }
+  el("tab-burn").addEventListener("click",function(){ setScreen("burn"); burnIcon(); });
   el("tab-income").addEventListener("click",function(){ navBurst(this,"income"); setScreen("income"); });
   el("tab-insights").addEventListener("click",function(){ setScreen("insights"); });
   el("tab-settings").addEventListener("click",function(){ setScreen("settings"); });
