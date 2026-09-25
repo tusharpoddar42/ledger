@@ -607,11 +607,12 @@
   function fmtN(n){ return fmtr().format(Math.round(n||0)); }
   function money(n){ return sym()+fmtN(n); }
   function shortMoney(n){ n=Math.round(n||0); var s=sym(),ind=state.settings.currency.code==="INR"; if(ind){ if(n>=1e7)return s+(n/1e7).toFixed(1).replace(/\.0$/,"")+"Cr"; if(n>=1e5)return s+(n/1e5).toFixed(1).replace(/\.0$/,"")+"L"; if(n>=1e3)return s+(n/1e3).toFixed(1).replace(/\.0$/,"")+"k"; } else { if(n>=1e9)return s+(n/1e9).toFixed(1).replace(/\.0$/,"")+"B"; if(n>=1e6)return s+(n/1e6).toFixed(1).replace(/\.0$/,"")+"M"; if(n>=1e3)return s+(n/1e3).toFixed(1).replace(/\.0$/,"")+"k"; } return money(n); }
+  function shortNum(n){ n=Math.round(n||0); var ind=state.settings.currency.code==="INR"; if(ind){ if(n>=1e7)return (n/1e7).toFixed(1).replace(/\.0$/,"")+"Cr"; if(n>=1e5)return (n/1e5).toFixed(1).replace(/\.0$/,"")+"L"; if(n>=1e3)return (n/1e3).toFixed(1).replace(/\.0$/,"")+"k"; } else { if(n>=1e9)return (n/1e9).toFixed(1).replace(/\.0$/,"")+"B"; if(n>=1e6)return (n/1e6).toFixed(1).replace(/\.0$/,"")+"M"; if(n>=1e3)return (n/1e3).toFixed(1).replace(/\.0$/,"")+"k"; } return fmtN(n); }
   function el(id){ return document.getElementById(id); }
   function pct(a,b){ return b>0?Math.round(a/b*100):0; }
   function escapeHtml(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
   function tween(dur,onF){ if(REDUCE){ onF(1); return; } var s=performance.now(); (function step(now){ var t=Math.min(1,(now-s)/dur); onF(t>=1?1:(1-Math.pow(2,-9*t))); if(t<1) requestAnimationFrame(step); })(performance.now()); }
-  function countUp(node,to,from){ from=from||0; to=Math.round(to); if(Math.abs(to-from)<2){ node.textContent=fmtN(to); return; } var s=performance.now(),dur=900; (function step(now){ var t=Math.min(1,(now-s)/dur),e=t>=1?1:(1-Math.pow(1-t,4)); node.textContent=fmtN(Math.round(from+(to-from)*e)); if(t<1)requestAnimationFrame(step); })(performance.now()); }
+  function countUp(node,to,from){ from=from||0; to=Math.round(to); if(Math.abs(to-from)<2){ node.textContent=fmtN(to); return; } var s=performance.now(),dur=720; (function step(now){ var t=Math.min(1,(now-s)/dur),e=t>=1?1:(1-Math.pow(1-t,3)); node.textContent=fmtN(Math.round(from+(to-from)*e)); if(t<1)requestAnimationFrame(step); })(performance.now()); }
   function parseNum(v){ var n=parseFloat(String(v==null?"":v).replace(/[^0-9.\-]/g,"")); return isNaN(n)?0:n; }
   function cssv(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
 
@@ -777,7 +778,7 @@
     series.forEach(function(s,i){ var cx=padL+gap*i+gap/2,x=cx-bw/2,isSel=s.start===selStart(),dl='style="transition-delay:'+(i*40)+'ms"'; var hTot=s.total/max*plotH,hRec=s.rec/max*plotH,hDaily=hTot-hRec,yTop=padT+plotH-hTot;
       if(hDaily>0) g+='<rect class="gbar" '+dl+' x="'+x+'" y="'+(padT+plotH-hDaily)+'" width="'+bw+'" height="'+hDaily+'" rx="4" fill="'+acc+'" opacity="'+(isSel?1:.4)+'"/>';
       if(hRec>0) g+='<rect class="gbar" '+dl+' x="'+x+'" y="'+yTop+'" width="'+bw+'" height="'+hRec+'" rx="4" fill="'+warm+'" opacity="'+(isSel?.9:.35)+'"/>';
-      if(s.total>0) g+='<text x="'+cx+'" y="'+(yTop-8)+'" text-anchor="middle" font-size="10.5" font-weight="600" fill="'+(isSel?ink:faint)+'">'+shortMoney(s.total)+'</text>';
+      if(s.total>0) g+='<text x="'+cx+'" y="'+(yTop-8)+'" text-anchor="middle" font-size="10.5" font-weight="600" fill="'+(isSel?ink:faint)+'">'+shortNum(s.total)+'</text>';
       var lbl=bshort(gran,s.start); if(gran==="month"){ var yp=(i>0?series[i-1].start.slice(0,4):null); if(i===0||isSel||s.start.slice(0,4)!==yp) lbl=ymShort(s.start)+" ’"+s.start.slice(2,4); }
       g+='<text x="'+cx+'" y="'+(H-9)+'" text-anchor="middle" font-size="10.5" font-weight="'+(isSel?"700":"500")+'" fill="'+(isSel?acc:faint)+'">'+lbl+'</text>';
       g+='<rect class="hit" data-s="'+s.start+'" x="'+x+'" y="'+padT+'" width="'+bw+'" height="'+plotH+'" fill="transparent" style="cursor:pointer"></rect>'; });
@@ -899,7 +900,7 @@
     var W=Math.max(300,vals.length*54),H=150,padL=6,padR=6,padT=22,padB=26,max=0; vals.forEach(function(x){ if(x.v>max)max=x.v; }); if(max<=0)max=1;
     var plotH=H-padT-padB,plotW=W-padL-padR,gap=plotW/vals.length,bw=Math.min(36,gap*0.62),g="";
     for(var k=0;k<=2;k++){ var gy=padT+plotH*(k/2); g+='<line x1="'+padL+'" y1="'+gy+'" x2="'+(W-padR)+'" y2="'+gy+'" stroke="'+sep+'" stroke-width="1"/>'; }
-    vals.forEach(function(x,i){ var cx=padL+gap*i+gap/2,bx=cx-bw/2,h=x.v/max*plotH,y=padT+plotH-h,isSel=x.start===selStart(); if(h>0) g+='<rect class="gbar" style="transition-delay:'+(i*40)+'ms" x="'+bx+'" y="'+y+'" width="'+bw+'" height="'+h+'" rx="4" fill="'+acc+'" opacity="'+(isSel?1:.45)+'"/>'; if(x.v>0) g+='<text x="'+cx+'" y="'+(y-6)+'" text-anchor="middle" font-size="10" font-weight="600" fill="'+(isSel?ink:faint)+'">'+shortMoney(x.v)+'</text>'; g+='<text x="'+cx+'" y="'+(H-8)+'" text-anchor="middle" font-size="10" font-weight="'+(isSel?"700":"500")+'" fill="'+(isSel?ink:faint)+'">'+bshort(gran,x.start)+'</text><rect class="hit" data-s="'+x.start+'" x="'+(cx-gap/2)+'" y="'+padT+'" width="'+gap+'" height="'+plotH+'" fill="transparent" style="cursor:pointer"/>'; });
+    vals.forEach(function(x,i){ var cx=padL+gap*i+gap/2,bx=cx-bw/2,h=x.v/max*plotH,y=padT+plotH-h,isSel=x.start===selStart(); if(h>0) g+='<rect class="gbar" style="transition-delay:'+(i*40)+'ms" x="'+bx+'" y="'+y+'" width="'+bw+'" height="'+h+'" rx="4" fill="'+acc+'" opacity="'+(isSel?1:.45)+'"/>'; if(x.v>0) g+='<text x="'+cx+'" y="'+(y-6)+'" text-anchor="middle" font-size="10" font-weight="600" fill="'+(isSel?ink:faint)+'">'+shortNum(x.v)+'</text>'; g+='<text x="'+cx+'" y="'+(H-8)+'" text-anchor="middle" font-size="10" font-weight="'+(isSel?"700":"500")+'" fill="'+(isSel?ink:faint)+'">'+bshort(gran,x.start)+'</text><rect class="hit" data-s="'+x.start+'" x="'+(cx-gap/2)+'" y="'+padT+'" width="'+gap+'" height="'+plotH+'" fill="transparent" style="cursor:pointer"/>'; });
     cb.className="chartbox"+(animate&&!REDUCE?"":" static"); cb.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img">'+g+'</svg>'; if(animate&&!REDUCE) requestAnimationFrame(function(){ cb.classList.add("in"); });
     cb.querySelectorAll(".hit").forEach(function(rr){ rr.addEventListener("click",function(){ selYM=rr.getAttribute("data-s"); renderInsights(false); }); });
   }
