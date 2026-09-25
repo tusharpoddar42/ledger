@@ -612,7 +612,7 @@
   function pct(a,b){ return b>0?Math.round(a/b*100):0; }
   function escapeHtml(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
   function tween(dur,onF){ if(REDUCE){ onF(1); return; } var s=performance.now(); (function step(now){ var t=Math.min(1,(now-s)/dur); onF(t>=1?1:(1-Math.pow(2,-9*t))); if(t<1) requestAnimationFrame(step); })(performance.now()); }
-  function countUp(node,to,from){ from=from||0; to=Math.round(to); if(Math.abs(to-from)<2){ node.textContent=fmtN(to); return; } var s=performance.now(),dur=600; (function step(now){ var t=Math.min(1,(now-s)/dur),e=t>=1?1:(1-Math.cos(Math.PI*t))/2; node.textContent=fmtN(Math.round(from+(to-from)*e)); if(t<1)requestAnimationFrame(step); })(performance.now()); }
+  function countUp(node,to,prev){ to=Math.round(to); var from=Math.round(to*0.6); if(Math.abs(to-from)<3){ node.textContent=fmtN(to); return; } var tok=(node._ctok=(node._ctok||0)+1),N=10; node.textContent=fmtN(from); (function tick(i){ if(node._ctok!==tok)return; var p=i/N,e=1-Math.pow(1-p,2); node.textContent=fmtN(i>=N?to:Math.round(from+(to-from)*e)); if(i<N){ setTimeout(function(){ tick(i+1); }, 32+110*Math.pow(p,1.8)); } })(1); }
   function parseNum(v){ var n=parseFloat(String(v==null?"":v).replace(/[^0-9.\-]/g,"")); return isNaN(n)?0:n; }
   function cssv(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
 
