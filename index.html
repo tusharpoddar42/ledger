@@ -393,12 +393,13 @@
   .datebtn{position:relative;display:inline-flex;align-items:center;gap:5px;background:var(--field);border:1px solid var(--sep);border-radius:10px;padding:9px 14px;font-size:14px;font-weight:700;color:var(--ink-2);white-space:nowrap}
   .datebtn input{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:none;margin:0;padding:0;color-scheme:inherit}
   .preview .pdesc{font-size:14px;font-weight:500;color:var(--ink-3);margin-top:9px;min-height:18px}
-  .qtoprow{margin:0 0 4px}
-  select.qtype{font-weight:700;padding:9px 13px}
+  .qtoprow{display:flex;align-items:center;justify-content:space-between;gap:10px 12px;flex-wrap:wrap;margin:2px 0 2px}
+  select.qtype{width:auto;max-width:100%;font-weight:700;font-size:14px;padding:8px 12px}
+  .qtoprow .pamt{flex:none}
   .qmeta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:11px}
   .qcatrow{margin-top:12px}
   .qcatlab{font-size:12px;font-weight:600;color:var(--ink-3);display:block;margin-bottom:7px}
-  .catstrip{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:max-content;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scroll-behavior:smooth;scrollbar-width:none}
+  .catstrip{display:flex;flex-flow:column wrap;align-content:flex-start;height:108px;gap:6px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding-bottom:2px;scroll-behavior:smooth;scrollbar-width:none;overscroll-behavior-x:contain}
   .catstrip::-webkit-scrollbar{display:none}
   .catstrip .catchip{flex:none;white-space:nowrap}
   .sugrow{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px;align-items:center}
@@ -408,7 +409,7 @@
   .sugchip b{color:var(--acc)}
   .sugchip.on{border-style:solid;border-color:var(--acc);color:var(--ink);background:color-mix(in srgb,var(--acc) 10%,var(--field))}
   .catchips{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px}
-  .catchip{border:1px solid var(--sep);background:var(--card);color:var(--ink-2);font-weight:600;font-size:12.5px;padding:6px 10px;border-radius:99px;display:inline-flex;align-items:center;gap:6px;transition:transform .12s}
+  .catchip{border:1px solid var(--sep);background:var(--card);color:var(--ink-2);font-weight:600;font-size:12.5px;height:30px;padding:0 10px;border-radius:99px;display:inline-flex;align-items:center;gap:6px;transition:transform .12s}
   .catchip:active{transform:scale(.94)}.catchip[aria-pressed="true"]{background:var(--field);border-color:var(--acc);color:var(--ink);box-shadow:inset 0 0 0 1px var(--acc)}
   .catchip[aria-pressed="true"] .catdisc{box-shadow:none}
   .computed{margin-top:12px;font-size:13px;color:var(--acc);font-weight:600;background:var(--acc-tint);padding:11px 13px;border-radius:11px}
@@ -626,10 +627,9 @@
       <div class="seg" id="typeseg" role="tablist" aria-label="Expense type"><button data-t="oneoff" aria-selected="true">One-off</button><button data-t="recurring" aria-selected="false">Recurring</button><button data-t="amortized" aria-selected="false">Amortized</button></div>
       <div class="seg" id="inctypeseg" role="tablist" aria-label="Income type"><button data-t="oneoff" aria-selected="true">One-off</button><button data-t="monthly" aria-selected="false">Monthly</button></div>
     </div>
-    <div class="qtoprow"><select class="tf qtype" id="typepick" aria-label="What are you adding"></select></div>
+    <div class="qtoprow"><div class="pamt empty tnum" id="pamt">·</div><select class="tf qtype" id="typepick" aria-label="What are you adding"></select><div class="datebtn" id="pdatebtn"><span id="pdatelbl">Today</span><input type="date" id="pdate" aria-label="Date"></div></div>
 
     <div id="grp-oneoff">
-      <div class="qmeta"><div class="pamt empty tnum" id="pamt">·</div><div class="datebtn" id="pdatebtn"><span id="pdatelbl">Today</span><input type="date" id="pdate" aria-label="Date"></div></div>
       <div class="qcatrow"><span class="qcatlab" id="qcatlab">Category</span><div class="catstrip" id="catchips"></div></div>
       <div class="autohint" id="autohint"></div>
       <div class="entryfield"><input id="entry" placeholder="e.g. 300 coffee at CCD" autocomplete="off" autocapitalize="sentences" enterkeyhint="done"><button class="mic" id="micbtn" aria-label="Speak" hidden><svg viewBox="0 0 24 24" fill="none"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3Z" stroke="currentColor" stroke-width="2"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
@@ -1250,7 +1250,7 @@
   function validate(){ var ok=false; if(addDomain==="expense"){ if(addType==="oneoff"){ var p=parseEntry(el("entry").value); ok=(p.amount!=null&&p.amount>0); } else if(addType==="recurring"){ ok=parseNum(el("r-amount").value)>0&&el("r-desc").value.trim()&&el("r-start").value; } else { var t=parseNum(el("a-amount").value),pr=parseInt(el("a-periods").value,10); ok=t>0&&pr>0&&el("a-desc").value.trim()&&el("a-start").value; } } else { if(addType==="oneoff"){ ok=parseNum(el("i-amount").value)>0&&el("i-date").value; } else { ok=parseNum(el("im-amount").value)>0&&el("im-desc").value.trim()&&el("im-start").value; } } el("savebtn").disabled=!ok; }
   function saveLabel(){ if(editId||editRecId||editIncId||editIncRecId)return "Save changes"; if(addDomain==="income")return "Save income"; return addType==="oneoff"?"Save expense":addType==="recurring"?"Save recurring":"Save amortized"; }
   function setDomain(d){ if(d==="income"&&modLocked("income"))d="expense"; if(d==="expense"&&modLocked("burn"))d="income"; addDomain=d; el("domainseg").querySelectorAll("button").forEach(function(b){ var dd=b.getAttribute("data-d"); b.style.display=((dd==="income"&&modLocked("income"))||(dd==="expense"&&modLocked("burn")))?"none":""; b.setAttribute("aria-selected",dd===d); }); setType("oneoff"); }
-  function setType(t){ addType=t; var inc=addDomain==="income"; el("typeseg").hidden=inc; el("inctypeseg").hidden=!inc; ["oneoff","recurring","amortized","inc-oneoff","inc-monthly"].forEach(function(x){ el("grp-"+x).hidden=true; }); if(!inc){ el("grp-"+t).hidden=false; el("typeseg").querySelectorAll("button").forEach(function(b){b.setAttribute("aria-selected",b.getAttribute("data-t")===t);}); if(t==="recurring")renderRecCat(); else if(t==="amortized")renderAmoCat(); } else { el("grp-"+(t==="monthly"?"inc-monthly":"inc-oneoff")).hidden=false; el("inctypeseg").querySelectorAll("button").forEach(function(b){b.setAttribute("aria-selected",b.getAttribute("data-t")===t);}); if(t==="oneoff")renderIncChips(); else renderImCat(); } el("savebtn").textContent=saveLabel(); syncTypePick(); validate(); }
+  function setType(t){ addType=t; var inc=addDomain==="income"; var showAD=(!inc&&t==="oneoff"),pa=el("pamt"),db2=el("pdatebtn"); if(pa)pa.hidden=!showAD; if(db2)db2.hidden=!showAD; el("typeseg").hidden=inc; el("inctypeseg").hidden=!inc; ["oneoff","recurring","amortized","inc-oneoff","inc-monthly"].forEach(function(x){ el("grp-"+x).hidden=true; }); if(!inc){ el("grp-"+t).hidden=false; el("typeseg").querySelectorAll("button").forEach(function(b){b.setAttribute("aria-selected",b.getAttribute("data-t")===t);}); if(t==="recurring")renderRecCat(); else if(t==="amortized")renderAmoCat(); } else { el("grp-"+(t==="monthly"?"inc-monthly":"inc-oneoff")).hidden=false; el("inctypeseg").querySelectorAll("button").forEach(function(b){b.setAttribute("aria-selected",b.getAttribute("data-t")===t);}); if(t==="oneoff")renderIncChips(); else renderImCat(); } el("savebtn").textContent=saveLabel(); syncTypePick(); validate(); }
   function openAdd(domain,type){ if(isGuest()){ toast("Guest is a read-only demo"); return; } editId=editRecId=editIncId=editIncRecId=null; addAutoCat=true; recAutoCat=true; amoAutoCat=true; teachWord=null; addCat=fallbackCat(); recCat=fallbackCat(); amoCat=fallbackCat(); incAddCat=(state.incomeCategories[0]||{name:"Other"}).name; imCat=incAddCat;
     el("sheettitle").textContent="Add"; el("delbtn").hidden=true;
     el("entry").value=""; el("pdate").value=new Date().toISOString().slice(0,10);
