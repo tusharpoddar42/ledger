@@ -19,7 +19,7 @@
     --sep:rgba(60,60,67,.16);--sep-strong:rgba(60,60,67,.29);
     --acc:#2FA65A;--acc-ink:#FFFFFF;--acc-tint:rgba(47,166,90,.12);
     --inc:#2F80ED;--inc-ink:#FFFFFF;--inc-tint:rgba(47,128,237,.12);
-    --bad:#E5484D;--warm:#C07C2C;
+    --bad:#E5484D;--warm:#C07C2C;--amo:#4C86C6;
     --field:#EFEFF4;--field-ink:#1C1C1E;
     --nav-bg:rgba(255,255,255,.9);--nav-border:rgba(60,60,67,.14);
     --shadow:0 1px 0 rgba(0,0,0,.02),0 6px 20px -12px rgba(0,0,0,.14);
@@ -34,7 +34,7 @@
     --sep:rgba(90,75,50,.20);--sep-strong:rgba(90,75,50,.32);
     --acc:#4E8A5A;--acc-ink:#FBF6EA;--acc-tint:rgba(78,138,90,.16);
     --inc:#3E72C4;--inc-ink:#FBF6EA;--inc-tint:rgba(62,114,196,.14);
-    --bad:#C0553E;--warm:#B07A2E;
+    --bad:#C0553E;--warm:#B07A2E;--amo:#467FB5;
     --field:#EBE1CD;--field-ink:#3B342A;
     --nav-bg:rgba(248,241,226,.9);--nav-border:rgba(90,75,50,.18);
     --shadow:0 1px 0 rgba(80,60,30,.03),0 6px 20px -12px rgba(80,60,30,.18);
@@ -47,21 +47,22 @@
     --sep:rgba(84,84,88,.55);--sep-strong:rgba(120,120,128,.6);
     --acc:#32D74B;--acc-ink:#04210F;--acc-tint:rgba(50,215,75,.16);
     --inc:#5AA0FF;--inc-ink:#031428;--inc-tint:rgba(90,160,255,.16);
-    --bad:#FF6961;--warm:#E0A34A;
+    --bad:#FF6961;--warm:#E0A34A;--amo:#5A95E0;
     --field:#2C2C2E;--field-ink:#FFFFFF;
     --nav-bg:rgba(28,28,30,.86);--nav-border:rgba(120,120,128,.28);
     --shadow:0 1px 0 rgba(0,0,0,.4),0 8px 24px -14px rgba(0,0,0,.8);
     --seg-bg:#1C1C1E;--seg-sel:#48484A;--seg-shadow:0 1px 4px rgba(0,0,0,.5);
     color-scheme:dark;
   }
-  /* colour palettes — recolour the primary accent only (semantic colours untouched) */
-  :root[data-palette="ocean"]{--acc:#1E7FC2;--acc-ink:#fff;--acc-tint:rgba(30,127,194,.12)}
-  :root[data-palette="plum"]{--acc:#8A4FD0;--acc-ink:#fff;--acc-tint:rgba(138,79,208,.12)}
-  :root[data-palette="amber"]{--acc:#B4681A;--acc-ink:#fff;--acc-tint:rgba(180,104,26,.14)}
+  /* colour palettes — recolour the accent AND shift the three data series (recurring / amortized / income)
+     so they stay complementary to the accent and distinct from each other; category + status colours stay fixed. */
+  :root[data-palette="ocean"]{--acc:#1E7FC2;--acc-ink:#fff;--acc-tint:rgba(30,127,194,.12);--warm:#C8842E;--amo:#8E5AD6;--inc:#1FA37A;--inc-tint:rgba(31,163,122,.13)}
+  :root[data-palette="plum"]{--acc:#8A4FD0;--acc-ink:#fff;--acc-tint:rgba(138,79,208,.12);--warm:#C8842E;--amo:#3E86D6;--inc:#1FA37A;--inc-tint:rgba(31,163,122,.13)}
+  :root[data-palette="amber"]{--acc:#B4681A;--acc-ink:#fff;--acc-tint:rgba(180,104,26,.14);--warm:#2F9E8A;--amo:#4C86C6;--inc:#2F80ED;--inc-tint:rgba(47,128,237,.12)}
   :root[data-palette="graphite"]{--acc:#565B62;--acc-ink:#fff;--acc-tint:rgba(86,91,98,.14)}
-  :root[data-theme="night"][data-palette="ocean"]{--acc:#4FA8FF;--acc-ink:#04203b;--acc-tint:rgba(79,168,255,.17)}
-  :root[data-theme="night"][data-palette="plum"]{--acc:#C07BF5;--acc-ink:#1c0730;--acc-tint:rgba(192,123,245,.18)}
-  :root[data-theme="night"][data-palette="amber"]{--acc:#F2A93C;--acc-ink:#2a1a02;--acc-tint:rgba(242,169,60,.18)}
+  :root[data-theme="night"][data-palette="ocean"]{--acc:#4FA8FF;--acc-ink:#04203b;--acc-tint:rgba(79,168,255,.17);--warm:#E6AB55;--amo:#B295F2;--inc:#3FC79B;--inc-tint:rgba(63,199,155,.18)}
+  :root[data-theme="night"][data-palette="plum"]{--acc:#C07BF5;--acc-ink:#1c0730;--acc-tint:rgba(192,123,245,.18);--warm:#E6AB55;--amo:#6AA6F0;--inc:#3FC79B;--inc-tint:rgba(63,199,155,.18)}
+  :root[data-theme="night"][data-palette="amber"]{--acc:#F2A93C;--acc-ink:#2a1a02;--acc-tint:rgba(242,169,60,.18);--warm:#49C3AC;--amo:#6AA6F0;--inc:#5AA0FF;--inc-tint:rgba(90,160,255,.16)}
   :root[data-theme="night"][data-palette="graphite"]{--acc:#AEB3BB;--acc-ink:#15171a;--acc-tint:rgba(174,179,187,.18)}
   *{box-sizing:border-box}
   [hidden]{display:none!important}
@@ -287,7 +288,7 @@
   .row .amt2{font-weight:600;font-size:15px;text-align:right;white-space:nowrap;justify-self:end;padding-left:6px}
   .tagr{font-size:10px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;padding:2px 6px;border-radius:5px}
   .tagr.rec{color:var(--warm);background:color-mix(in srgb,var(--warm) 14%,transparent)}
-  .tagr.amo{color:#5A8DEF;background:rgba(90,141,239,.14)}
+  .tagr.amo{color:var(--amo);background:color-mix(in srgb,var(--amo) 14%,transparent)}
   .tagr.rev{color:var(--warm);background:color-mix(in srgb,var(--warm) 14%,transparent)}
   .txnfilter{display:flex;align-items:center;gap:8px;padding:6px 18px 10px;flex-wrap:wrap}
   .chip{font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:99px;border:1px solid var(--sep);background:transparent;color:var(--ink-2);display:inline-flex;align-items:center;gap:7px}
@@ -454,6 +455,8 @@
   .palsw{width:16px;height:16px;border-radius:50%;flex:none}
   .subsec>details.fold{margin-top:0}
   .subsec>details.fold>summary{display:none}
+  /* summary is hidden in subpages, so the body needs its own top inset to match the 18px sides */
+  .subsec>details.fold>.foldbody{padding-top:17px}
   .cmrow{display:flex;align-items:center;gap:12px;width:100%;border:none;background:transparent;color:var(--ink);padding:12px 2px;cursor:pointer;text-align:left;border-bottom:1px solid var(--sep)}
   .cmrow:last-child{border-bottom:none}
   .cmrow .catdisc{width:14px;height:14px;border-radius:4px;flex:none}
@@ -481,10 +484,10 @@
   .trcatrow:last-child{border-bottom:none}
   .trcatrow .nm{flex:1;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .trcatrow .vl{font-weight:700;font-size:14px}
-  .morebar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;width:100%;margin-top:12px}
-  .morebar-sep{border-top:1px solid var(--sep);padding-top:12px;margin-top:0}
-  .morebar .mbcount{font-size:12.5px;color:var(--ink-4);font-weight:500}
-  .morebar .mbmore{font-size:13px;color:var(--acc);font-weight:700;cursor:pointer;background:none;border:none;padding:4px 2px;display:inline-flex;align-items:center;gap:4px}
+  .morebar{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:11px 18px 4px;margin-top:2px}
+  .morebar-sep{border-top:1px solid var(--sep);margin-top:2px}
+  .morebar .mbcount{font-size:12.5px;color:var(--ink-4);font-weight:500;line-height:1}
+  .morebar .mbmore{font-size:13px;color:var(--acc);font-weight:700;cursor:pointer;background:none;border:none;padding:0;margin:0;display:inline-flex;align-items:center;gap:4px;line-height:1;white-space:nowrap}
   .morebar .mbmore:active{opacity:.6}
   .morebar .mbmore svg{width:14px;height:14px;flex:none}
   .homecurcard{display:flex;align-items:center;gap:14px;background:var(--card);box-shadow:var(--shadow);border-radius:var(--radius);padding:16px;margin-top:4px}
@@ -542,6 +545,8 @@
   .sheet{background:var(--card);width:100%;max-width:500px;border-radius:20px 20px 0 0;padding:10px 18px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 -12px 40px -14px rgba(0,0,0,.5);transform:translateY(100%);transition:transform .34s var(--ease);max-height:92vh;overflow-y:auto}
   @media(min-width:560px){.sheet{border-radius:18px;transform:translateY(30px) scale(.98)}}
   .scrim.show .sheet{transform:none}
+  /* pickers invoked from inside another sheet (currency, merge-target) must stack above it */
+  #curscrim,#movescrim{z-index:72}
   .confirmscrim{align-items:center;padding:24px;z-index:90}
   .confirmbox{background:var(--card);border-radius:18px;padding:20px;max-width:340px;width:100%;box-shadow:0 20px 50px -16px rgba(0,0,0,.5);transform:translateY(10px) scale(.98);transition:transform .28s var(--ease)}
   .confirmscrim.show .confirmbox{transform:none}
@@ -854,6 +859,8 @@
           <button class="guidebtn" data-tour="income"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 16V8.5M9.3 11L12 8.3 14.7 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Income</span></button>
           <button class="guidebtn" data-tour="insights"><svg viewBox="0 0 24 24" fill="none"><path d="M5 19V5M5 19h14M9 16v-4M13 16V9M17 16v-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Insights</span></button>
           <button class="guidebtn" data-tour="basics"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M12 4.5v2M12 17.5v2M4.5 12h2M17.5 12h2M6.6 6.6l1.5 1.5M15.9 15.9l1.5 1.5M17.4 6.6l-1.5 1.5M8.1 15.9l-1.5 1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Basics &amp; saving</span></button>
+          <button class="guidebtn" data-tour="categories"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Category Management</span></button>
+          <button class="guidebtn" data-tour="trips"><svg viewBox="0 0 24 24" fill="none"><path d="M21 15.5v-1.8l-8-4.7V4.5a1.5 1.5 0 0 0-3 0v4.5l-8 4.7v1.8l8-2.3V17l-2 1.4V20l3.5-1 3.5 1v-1.6L13 17v-2.3l8 2.3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Trips &amp; FX</span></button>
         </div>
       </div>
     </details>
@@ -1423,7 +1430,7 @@
     _FA=null;
   }
   function renderSplit(side,a,counts){
-    var wrap=el("splitwrap"); if(!wrap)return; var total=a.total||1,colors={oneoff:cssv('--acc')||"#34C759",recurring:cssv('--warm')||"#C07C2C",amortized:COL_AMO};
+    var wrap=el("splitwrap"); if(!wrap)return; var total=a.total||1,colors={oneoff:cssv('--acc')||"#34C759",recurring:cssv('--warm')||"#C07C2C",amortized:cssv('--amo')||COL_AMO};
     var valOf={oneoff:a.daily,recurring:a.rec,amortized:(a.amo||0)},sel=FILT.types,any=sel.length>0;
     var types=sideTypes(side).filter(function(t){ return t!=="amortized"||valOf.amortized>0||sel.indexOf("amortized")>-1; });
     var bar=types.map(function(t){ var v=valOf[t],p=total>0?v/total*100:0,dim=(any&&sel.indexOf(t)<0); return '<i style="width:'+p+'%;background:'+colors[t]+';opacity:'+(dim?".28":"1")+'"></i>'; }).join("");
@@ -1435,7 +1442,7 @@
   function renderMoM(target,side,animate){
     var box=el(target); if(!box)return;
     var lvl=czLevel(),brk=!!lvl,series=brk?subSeries(side,lvl):bseries(side);
-    var acc=cssv('--acc')||"#34C759",warm=cssv('--warm')||"#C07C2C",ink=cssv('--ink')||"#000",faint=cssv('--ink-3')||"#8E8E93",sep=cssv('--sep')||"#ccc";
+    var acc=cssv('--acc')||"#34C759",warm=cssv('--warm')||"#C07C2C",amo=cssv('--amo')||COL_AMO,ink=cssv('--ink')||"#000",faint=cssv('--ink-3')||"#8E8E93",sep=cssv('--sep')||"#ccc";
     var per=brk?44:54,H=200,padL=6,padR=6,padT=26,padB=28,n=series.length||1;
     var cw=(box.clientWidth||364)-24,scroll=brk&&n>14,VW=scroll?n*per:Math.max(280,cw);
     var max=0; series.forEach(function(s){ if(s.total>max)max=s.total; }); if(max<=0)max=1;
@@ -1446,7 +1453,7 @@
       { var hD=(s.daily||0)/max*plotH,hR=(s.rec||0)/max*plotH,hA=(s.amo||0)/max*plotH; yTop=yb-hD-hR-hA;
         if(hD>0) g+='<rect class="gbar" '+dl+' x="'+x+'" y="'+(yb-hD)+'" width="'+bw+'" height="'+hD+'" rx="'+(brk?3:4)+'" fill="'+acc+'" opacity="'+(isSel?1:.4)+'"/>';
         if(hR>0) g+='<rect class="gbar" '+dl+' x="'+x+'" y="'+(yb-hD-hR)+'" width="'+bw+'" height="'+hR+'" rx="'+(brk?3:4)+'" fill="'+warm+'" opacity="'+(isSel?.9:.35)+'"/>';
-        if(hA>0) g+='<rect class="gbar" '+dl+' x="'+x+'" y="'+(yb-hD-hR-hA)+'" width="'+bw+'" height="'+hA+'" rx="'+(brk?3:4)+'" fill="'+COL_AMO+'" opacity="'+(isSel?.95:.35)+'"/>'; }
+        if(hA>0) g+='<rect class="gbar" '+dl+' x="'+x+'" y="'+(yb-hD-hR-hA)+'" width="'+bw+'" height="'+hA+'" rx="'+(brk?3:4)+'" fill="'+amo+'" opacity="'+(isSel?.95:.35)+'"/>'; }
       if(showVals&&barVal>0) g+='<text x="'+cx+'" y="'+(yTop-8)+'" text-anchor="middle" font-size="'+vf+'" font-weight="600" fill="'+(isSel?ink:faint)+'">'+shortNum(barVal)+'</text>';
       var lbl; if(brk){ lbl=(i%lblStep===0||isSel)?subShort(lvl,s.ts):""; } else { lbl=bshort(gran,s.start); if(gran==="month"){ var yp=(i>0?series[i-1].start.slice(0,4):null); if(i===0||isSel||s.start.slice(0,4)!==yp) lbl=ymShort(s.start)+" ’"+s.start.slice(2,4); } }
       if(lbl) g+='<text x="'+cx+'" y="'+(H-9)+'" text-anchor="middle" font-size="10.5" font-weight="'+(isSel?"700":"500")+'" fill="'+(isSel?acc:faint)+'">'+lbl+'</text>';
@@ -2060,6 +2067,17 @@
       {screen:"burn",title:"Adding an entry",text:"Tap +. Type the amount and a note (e.g. '300 coffee at CCD'), or tap the mic to speak it. Ledger auto-picks a category from your rules, tap a chip to change it. Save sits at the bottom, always in reach."},
       {screen:"settings",title:"Categories & rules",text:"The Category Engine sorts entries automatically by keywords. Edit rules, add categories, or hide sensitive ones behind a lock, hidden spend rolls into a masked 'Others'."},
       {screen:"settings",title:"Backup & data",text:"Everything stays on this device. Export to one Excel file any time as a backup; import to restore or move. Re-importing replaces, so you never get duplicates."}
+    ],
+    categories:[
+      {screen:"settings",title:"Category Management",text:"In More → Tools, open Category Management. It lists every category with how many transactions and rules each one has, and a search to find one fast."},
+      {screen:"settings",title:"Tune a category",text:"Tap a category to rename it, change its colour, or add keyword rules that auto-file matching spends (e.g. 'swiggy, zomato' → Food). You can also review every transaction filed under it."},
+      {screen:"settings",title:"Merge & clean up",text:"Use 'Merge into…' to fold one category into another, or delete one you don't need. Transactions and rules move across with the merge, so nothing is lost and your totals stay correct."}
+    ],
+    trips:[
+      {screen:"settings",title:"Trips & FX",text:"Travelling? In More → Tools, open Trips & FX. A trip lets you log spends in a local currency and have them converted to your home currency automatically, with no live rates to chase."},
+      {screen:"settings",title:"Create a trip",text:"Tap + New trip: give it a name and start/end dates, pick the local currency, and set one fixed conversion rate (e.g. 1 MYR = ₹19.20). That single rate is used for the whole trip."},
+      {screen:"settings",title:"Log foreign spends",text:"Add an expense dated inside the trip and it defaults to that currency, type the local amount and Ledger stores the converted home value once, frozen even if rates move later. Paid in your home currency abroad? Switch the currency to Home, no conversion."},
+      {screen:"settings",title:"See the trip",text:"Open a trip for its home total, local spend, categories and transactions, or tap 'See in Burn' to filter your whole Burn screen to it. Every chart and total always stays in your home currency."}
     ]
   };
   var tourSteps=null,tourI=0;
@@ -2071,7 +2089,7 @@
   el("tourskip").addEventListener("click",endTour);
   document.querySelectorAll(".guidebtn").forEach(function(b){ b.addEventListener("click",function(){ startTour(b.getAttribute("data-tour")); }); });
   el("themerow").querySelectorAll(".themebtn").forEach(function(b){ b.addEventListener("click",function(){ applyTheme(b.getAttribute("data-th")); renderAll(false); }); });
-  (function(){ var pr=el("palrow"); if(pr)pr.querySelectorAll(".palbtn").forEach(function(b){ b.addEventListener("click",function(){ applyPalette(b.getAttribute("data-pal")); queueWrite(); }); }); })();
+  (function(){ var pr=el("palrow"); if(pr)pr.querySelectorAll(".palbtn").forEach(function(b){ b.addEventListener("click",function(){ applyPalette(b.getAttribute("data-pal")); queueWrite(); renderAll(false); }); }); })();
   (function(){ var vs=el("view-settings"); if(vs)vs.addEventListener("click",function(e){ var row=e.target.closest(".mrow"); if(row){ openSub(row.getAttribute("data-sub")); return; } var bk=e.target.closest(".subback"); if(bk){ closeSub(); } }); })();
   (function(){ var hb=el("homecurchange"); if(hb)hb.addEventListener("click",function(){ openCurPicker({title:"Home currency",current:homeCode(),onPick:function(code){ state.settings.currency=curByCode(code); _fc={}; queueWrite(); renderHomeCur(); renderMore(); renderAll(false); toast("Home currency: "+code); }}); }); var cs=el("cm-search"); if(cs)cs.addEventListener("input",function(){ cmSearch=cs.value; renderCatMgmt(); }); var cds=el("catdetscrim"); if(cds)cds.addEventListener("click",function(e){ if(e.target===cds)showCatDet(false); }); })();
   (function(){ var tn=el("trip-new"); if(tn)tn.addEventListener("click",openTripNew); var ts=el("tripscrim"); if(ts)ts.addEventListener("click",function(e){ if(e.target===ts)showTripDet(false); }); var te=el("tripedscrim"); if(te)te.addEventListener("click",function(e){ if(e.target===te)showTripEd(false); }); })();
