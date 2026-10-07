@@ -484,6 +484,14 @@
   .trcatrow:last-child{border-bottom:none}
   .trcatrow .nm{flex:1;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .trcatrow .vl{font-weight:700;font-size:14px}
+  .curaterow{display:flex;align-items:center;gap:12px;width:100%;border:none;background:transparent;color:var(--ink);padding:12px 2px;cursor:pointer;text-align:left;border-bottom:1px solid var(--sep)}
+  .curaterow:last-child{border-bottom:none}
+  .curaterow .csym{width:34px;height:34px;border-radius:9px;background:var(--field);display:grid;place-items:center;font-weight:700;font-size:15px;color:var(--ink);flex:none}
+  .curaterow .cinfo{flex:1;min-width:0}
+  .curaterow .cinfo b{display:block;font-size:15px;font-weight:700}
+  .curaterow .cinfo small{font-size:12px;color:var(--ink-4)}
+  .curaterow .crate{font-weight:700;font-size:13.5px;color:var(--ink-2);white-space:nowrap;display:flex;align-items:center;gap:6px}
+  .curaterow .crate svg{width:15px;height:15px;color:var(--ink-4)}
   .morebar{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:11px 18px 4px;margin-top:2px}
   .morebar-sep{border-top:1px solid var(--sep);margin-top:2px}
   .morebar .mbcount{font-size:12.5px;color:var(--ink-4);font-weight:500;line-height:1}
@@ -547,6 +555,11 @@
   .scrim.show .sheet{transform:none}
   /* pickers invoked from inside another sheet (currency, merge-target) must stack above it */
   #curscrim,#movescrim{z-index:72}
+  #ratescrim{z-index:74}
+  .rateform{display:flex;align-items:center;gap:8px}
+  .rateform .rateq{font-weight:700;font-size:16px;white-space:nowrap}
+  .rateform .rateeq{font-weight:700;font-size:16px;color:var(--ink-3)}
+  .rateform input{flex:1;min-width:0;text-align:left}
   .confirmscrim{align-items:center;padding:24px;z-index:90}
   .confirmbox{background:var(--card);border-radius:18px;padding:20px;max-width:340px;width:100%;box-shadow:0 20px 50px -16px rgba(0,0,0,.5);transform:translateY(10px) scale(.98);transition:transform .28s var(--ease)}
   .confirmscrim.show .confirmbox{transform:none}
@@ -594,6 +607,10 @@
   .preview{margin-top:14px;border-radius:14px;padding:15px;background:var(--field)}
   .preview .prow{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .pamt{font-size:26px;font-weight:700;line-height:1;letter-spacing:-.03em}.pamt.empty{color:var(--ink-4)}
+  .pamtwrap{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:3px}
+  .pamtcur{flex:none;border:none;background:transparent;color:var(--ink);font-size:26px;font-weight:800;line-height:1;letter-spacing:-.03em;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:1px;font-family:inherit}
+  .pamtcur .curcaret{width:12px;height:12px;color:var(--ink-4);flex:none}
+  .pamtcur:active{opacity:.55}
   .datebtn{position:relative;display:inline-flex;align-items:center;gap:5px;background:var(--field);border:1px solid var(--sep);border-radius:10px;padding:9px 14px;font-size:14px;font-weight:700;color:var(--ink-2);white-space:nowrap}
   .datebtn input{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:none;margin:0;padding:0;color-scheme:inherit}
   .preview .pdesc{font-size:14px;font-weight:500;color:var(--ink-3);margin-top:9px;min-height:18px}
@@ -813,6 +830,10 @@
       <button class="btn wide" id="trip-new">+ New trip</button>
       <div id="trips-list" style="margin-top:4px"></div>
       <p class="note" style="margin-top:14px">Set a trip's local currency and a fixed rate once. Spends dated inside the trip default to that currency and convert to your home currency automatically.</p>
+      <div class="tgrouplab" style="margin-top:26px">Currencies &amp; rates</div>
+      <div id="currencies-list" style="margin-top:2px"></div>
+      <button class="btn ghost wide" id="cur-add" style="margin-top:12px">+ Add a currency</button>
+      <p class="note" style="margin-top:12px">Each currency keeps one <b>default rate</b> used to convert its spends to your home currency. A trip can override it for its own dates. When you change a rate you choose whether past spends re-rate too.</p>
     </section>
 
     <section class="subsec" id="sub-recurring" hidden><div class="subhd"><button class="subback" aria-label="Back"><svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2>Recurring &amp; amortized</h2></div>
@@ -839,7 +860,7 @@
     <section class="subsec" id="sub-backup" hidden><div class="subhd"><button class="subback" aria-label="Back"><svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2>Backup &amp; data</h2></div>
       <details class="fold" open><summary>Backup</summary>
       <div class="foldbody">
-        <p class="note">Everything moves as <b>one Excel file</b>, and it never leaves this device. Tabs for Category Engine, Expense Data, Recurring &amp; Amortized, Income Data, Recurring Income and Trips, plain numbers. Export any time as a backup; import to restore or move.</p>
+        <p class="note">Everything moves as <b>one Excel file</b>, and it never leaves this device. Tabs for Category Engine, Expense Data, Recurring &amp; Amortized, Income Data, Recurring Income, Trips and Currencies, plain numbers. Export any time as a backup; import to restore or move.</p>
         <div class="datarow">
           <button class="btn ghost" id="tpl-all"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Template</button>
           <button class="btn" id="imp-all"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21V9m0 0l-4 4m4-4l4 4M5 3h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Import Excel</button>
@@ -902,15 +923,13 @@
       <div class="seg" id="typeseg" role="tablist" aria-label="Expense type"><button data-t="oneoff" aria-selected="true">One-off</button><button data-t="recurring" aria-selected="false">Recurring</button><button data-t="amortized" aria-selected="false">Amortized</button></div>
       <div class="seg" id="inctypeseg" role="tablist" aria-label="Income type"><button data-t="oneoff" aria-selected="true">One-off</button><button data-t="monthly" aria-selected="false">Monthly</button></div>
     </div>
-    <div class="qtoprow"><div class="pamt empty tnum" id="pamt">·</div><div class="qtopright"><select class="tf qtype" id="typepick" aria-label="What are you adding"></select><div class="datebtn" id="pdatebtn"><span id="pdatelbl">Today</span><input type="date" id="pdate" aria-label="Date"></div></div></div>
+    <div class="qtoprow"><div class="pamtwrap"><button class="pamtcur" id="pamtcur" type="button" aria-label="Change currency">₹</button><div class="pamt empty tnum" id="pamt">·</div></div><div class="qtopright"><select class="tf qtype" id="typepick" aria-label="What are you adding"></select><div class="datebtn" id="pdatebtn"><span id="pdatelbl">Today</span><input type="date" id="pdate" aria-label="Date"></div></div></div>
 
     <div id="grp-oneoff">
       <div class="qcatrow"><span class="qcatlab" id="qcatlab">Category</span><div class="catstrip" id="catchips"></div></div>
       <div class="autohint" id="autohint"></div>
       <div class="entryfield"><input id="entry" placeholder="e.g. 300 coffee at CCD" autocomplete="off" autocapitalize="sentences" enterkeyhint="done"><button class="mic" id="micbtn" aria-label="Speak" hidden><svg viewBox="0 0 24 24" fill="none"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3Z" stroke="currentColor" stroke-width="2"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><button class="rowdel" id="rowdel" aria-label="Delete" hidden><svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14M10 7V5h4v2M6 7l1 13h10l1-13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="rowsave" id="rowsave" aria-label="Save"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
-      <div class="fxbar" id="fxbar">
-        <button class="curchip" id="curbtn" type="button"><span id="curbtnc">INR</span><svg viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-        <span class="fxrw" id="fxrw" hidden>1 <b id="fxcode">·</b> = <input id="fxrateinp" inputmode="decimal" class="fxrateinp tnum" placeholder="rate"></span>
+      <div class="fxbar" id="fxbar" hidden>
         <span class="fxconv" id="fxconv" hidden></span>
         <span class="triptag" id="addtriptag" hidden></span>
       </div>
@@ -985,6 +1004,13 @@
     <div class="grip"></div>
     <h3 id="catdettitle">Category</h3>
     <div id="catdetbody" style="overflow-y:auto;flex:1;min-height:0"></div>
+  </div>
+</div>
+<div class="scrim" id="ratescrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ratetitle">
+    <div class="grip"></div>
+    <h3 id="ratetitle">Set rate</h3>
+    <div id="ratebody"></div>
   </div>
 </div>
 <div class="scrim" id="tripscrim" hidden>
@@ -1092,7 +1118,7 @@
   function categorize(desc){ var d=(desc||"").toLowerCase(); for(var i=0;i<state.rules.length;i++){ var r=state.rules[i]; if(r.active===false)continue; var ks=r.keywords||[]; for(var j=0;j<ks.length;j++){ var k=String(ks[j]).toLowerCase().trim(); if(k&&d.indexOf(k)>-1)return r.cat; } } return fallbackCat(); }
   function parseEntry(text){ var raw=(text||"").trim(); var m=raw.match(/(?:₹|\$|€|£|rs\.?|inr)?\s*(\d[\d,]*(?:\.\d+)?)\s*(k|thousand|lakh|l\b)?/i); var amount=null,idx=-1,len=0; if(m){ amount=parseNum(m[1]); idx=m.index; len=m[0].length; if(m[2]){ var u=m[2].toLowerCase(); if(u[0]==="k"||u.indexOf("thousand")>-1)amount*=1000; else if(u[0]==="l")amount*=100000; } } var desc=raw; if(m) desc=(raw.slice(0,idx)+" "+raw.slice(idx+len)); desc=desc.replace(/^[\s,.\-]*/,"").replace(/^(i\s+)?(just\s+)?(spent|spend|paid|pay|bought|buy|used|got)\b/i,"").replace(/^[\s,.\-]*(on|for|at|of)\s+/i," ").replace(/\b(rs|rupees|inr|usd|eur)\b/gi," ").replace(/[₹$€£]/g," ").replace(/\s+/g," ").trim(); return {amount:amount,description:desc,category:categorize(desc||raw)}; }
 
-  var state={expenses:[],recurring:[],rules:[],categories:[],income:[],incomeRecurring:[],incomeCategories:[],trips:[],settings:{currency:CURRENCIES[0],fallbackCat:"Needs Review",palette:"ledger"},_sample:false};
+  var state={expenses:[],recurring:[],rules:[],categories:[],income:[],incomeRecurring:[],incomeCategories:[],trips:[],rates:{},settings:{currency:CURRENCIES[0],fallbackCat:"Needs Review",palette:"ledger"},_sample:false};
   var selYM=ymOfDate(new Date()),gran="month",screen="burn",catFilter=null,diveSide="burn",txnSort={key:"date",dir:"desc"},catExpanded=false,txnQuery="",czoom=0;
   var rulesExp=false,catMgrExp={},txnLimit=15,txnStep=20;
   var editId=null,editRecId=null,editIncId=null,editIncRecId=null,addDomain="expense",addType="oneoff",addAutoCat=true,recAutoCat=true,amoAutoCat=true,addCat="Needs Review",incAddCat="Salary",recCat="Needs Review",amoCat="Needs Review",imCat="Salary",newCatColor=PALETTE[0],newIncColor=PALETTE[0];
@@ -1105,6 +1131,11 @@
   function tripForDate(ts){ var d=new Date(ts); var day=new Date(d.getFullYear(),d.getMonth(),d.getDate(),12,0,0).getTime(),best=null; state.trips.forEach(function(t){ if(!t.start||!t.end)return; var s=new Date(t.start+"T00:00:00").getTime(),e=new Date(t.end+"T23:59:59").getTime(); if(day>=s&&day<=e)best=t; }); return best; }
   function tripStatus(t){ if(!t||!t.start||!t.end)return "active"; var now=Date.now(),s=new Date(t.start+"T00:00:00").getTime(),e=new Date(t.end+"T23:59:59").getTime(); return now<s?"upcoming":now>e?"completed":"active"; }
   function homeOf(e){ return (e&&e.amount)||0; }  /* reporting value is always the stored home amount */
+  /* ---- currency rates (central default per currency; trips override for their dates) ---- */
+  function seedRates(){ if(!state.rates)state.rates={}; var latest={}; (state.expenses||[]).forEach(function(e){ if(e.cur&&e.cur!==homeCode()&&+e.rate>0){ if(!latest[e.cur]||e.ts>latest[e.cur].ts)latest[e.cur]={ts:e.ts,rate:+e.rate}; } }); Object.keys(latest).forEach(function(k){ if(!(state.rates[k]>0))state.rates[k]=latest[k].rate; }); }
+  function rateFor(code,ts){ var home=homeCode(); if(!code||code===home)return 1; if(ts){ var t=tripForDate(ts); if(t&&t.cur===code)return +t.rate||1; } return +state.rates[code]||0; }
+  function ratesUsed(){ return state.rates?Object.keys(state.rates).sort():[]; }
+  function hasRate(code){ return code===homeCode()||+state.rates[code]>0; }
 
   function recKind(r){ return r.kind||((r.type&&String(r.type).toLowerCase().indexOf("amort")>-1)?"amortized":"recurring"); }
   function recActiveIn(r,ym){ return ymCmp(ym,r.startYM)>=0 && (!r.endYM||ymCmp(ym,r.endYM)<=0); }
@@ -1281,7 +1312,7 @@
   function subSeriesBVI(level){ var pr=periodRangeSel(); return subBuckets(level,pr).map(function(t){ var r=subRangeFor(level,t); return {start:subKey(level,t),ts:t,level:level,s:r.s,e:r.e,burn:aggRange("burn",r.s,r.e).total,income:aggRange("income",r.s,r.e).total}; }); }
 
   /* persistence */
-  function exportPayload(){ return {app:"ledger",version:1,exportedAt:new Date().toISOString(),settings:state.settings,categories:state.categories,rules:state.rules,expenses:state.expenses,recurring:state.recurring,income:state.income,incomeRecurring:state.incomeRecurring,incomeCategories:state.incomeCategories,trips:state.trips}; }
+  function exportPayload(){ return {app:"ledger",version:1,exportedAt:new Date().toISOString(),settings:state.settings,categories:state.categories,rules:state.rules,expenses:state.expenses,recurring:state.recurring,income:state.income,incomeRecurring:state.incomeRecurring,incomeCategories:state.incomeCategories,trips:state.trips,rates:state.rates}; }
   function pDataKey(pid){ return "ledger_p_"+pid; }
   function isGuest(){ return activePid==="guest"; }
   function cacheLocal(){ if(isGuest())return; try{ localStorage.setItem(pDataKey(activePid),JSON.stringify(exportPayload())); }catch(e){} }
@@ -1300,15 +1331,16 @@
     var s=obj.settings||{},cur=s.currency; if(!cur||typeof cur==="string"){ cur=(typeof cur==="string"&&CURMAP[cur])||CURRENCIES[0]; } else { cur=CURMAP[cur.code]||{code:cur.code||"INR",name:cur.name||cur.code||"",symbol:cur.symbol||cur.code||"",locale:cur.locale||"en-US"}; }
     out.settings={currency:cur,palette:s.palette||"ledger",fallbackCat:s.fallbackCat||"Needs Review",hiddenExp:Array.isArray(s.hiddenExp)?s.hiddenExp.slice():[],hiddenInc:Array.isArray(s.hiddenInc)?s.hiddenInc.slice():[],lockHash:s.lockHash||null,lockBurn:!!s.lockBurn,lockIncome:!!s.lockIncome,sheetUrl:s.sheetUrl||"",autoSync:!!s.autoSync}; out._sample=!!obj._sample;
     out.trips=Array.isArray(obj.trips)?obj.trips.map(function(t){ return {id:t.id||("t"+Math.random().toString(36).slice(2,8)),name:String(t.name||"Trip").slice(0,40),start:t.start||null,end:t.end||null,cur:t.cur||"USD",rate:+t.rate||1,homeCode:t.homeCode||cur.code}; }):[];
+    out.rates={}; if(obj.rates&&typeof obj.rates==="object"){ Object.keys(obj.rates).forEach(function(k){ var r=+obj.rates[k]; if(k&&r>0)out.rates[String(k).toUpperCase()]=r; }); }
     var have={}; out.categories.forEach(function(c){have[c.name]=1;}); function need(n){ if(n&&!have[n]){ out.categories.push({name:n,color:PALETTE[out.categories.length%PALETTE.length]}); have[n]=1; } }
     out.expenses.forEach(function(e){need(e.category);}); out.recurring.forEach(function(r){need(r.category);}); out.rules.forEach(function(r){need(r.cat);}); need(out.settings.fallbackCat);
     var ihave={}; out.incomeCategories.forEach(function(c){ihave[c.name]=1;}); function ineed(n){ if(n&&!ihave[n]){ out.incomeCategories.push({name:n,color:PALETTE[out.incomeCategories.length%PALETTE.length]}); ihave[n]=1; } }
     out.income.forEach(function(e){ineed(e.category);}); out.incomeRecurring.forEach(function(r){ineed(r.category);});
     return out;
   }
-  function setStateFrom(m){ state.expenses=m.expenses; state.recurring=m.recurring; state.rules=m.rules; state.categories=m.categories; state.income=m.income; state.incomeRecurring=m.incomeRecurring; state.incomeCategories=m.incomeCategories; state.trips=m.trips||[]; state.settings=m.settings; state._sample=m._sample; }
+  function setStateFrom(m){ state.expenses=m.expenses; state.recurring=m.recurring; state.rules=m.rules; state.categories=m.categories; state.income=m.income; state.incomeRecurring=m.incomeRecurring; state.incomeCategories=m.incomeCategories; state.trips=m.trips||[]; state.rates=m.rates||{}; seedRates(); state.settings=m.settings; state._sample=m._sample; }
   function adoptState(obj,source){ setStateFrom(migrate(obj)); if(state.settings.palette)applyPalette(state.settings.palette); dataSource=source; cacheLocal(); rebuildSelects(); renderAll(true); }
-  function queueWrite(){ if(isGuest())return; cacheLocal(); autoSyncMaybe(); if(!docRef)return; if(writeTimer)clearTimeout(writeTimer); writeTimer=setTimeout(function(){ try{ docRef.set({expenses:state.expenses,recurring:state.recurring,rules:state.rules,categories:state.categories,income:state.income,incomeRecurring:state.incomeRecurring,incomeCategories:state.incomeCategories,trips:state.trips,settings:state.settings}); dataSource="db"; }catch(e){ dataSource="local"; } },250); }
+  function queueWrite(){ if(isGuest())return; cacheLocal(); autoSyncMaybe(); if(!docRef)return; if(writeTimer)clearTimeout(writeTimer); writeTimer=setTimeout(function(){ try{ docRef.set({expenses:state.expenses,recurring:state.recurring,rules:state.rules,categories:state.categories,income:state.income,incomeRecurring:state.incomeRecurring,incomeCategories:state.incomeCategories,trips:state.trips,rates:state.rates,settings:state.settings}); dataSource="db"; }catch(e){ dataSource="local"; } },250); }
   function normalizeDoc(snap){ if(!snap)return null; try{ if(typeof snap.data==="function"){ var d=snap.data(); if(d)return d; } }catch(e){} if(snap.data&&typeof snap.data==="object")return snap.data; if(snap.value&&typeof snap.value==="object")return snap.value; if(snap.expenses||snap.recurring||snap.rules)return snap; return null; }
   function hasData(o){ return o&&(Array.isArray(o.expenses)||Array.isArray(o.recurring)||Array.isArray(o.income)); }
   function initDB(){ if(isGuest()){ finishNoDB(); return; } var p; try{ p=(window.claude&&typeof window.claude.use==="function")?window.claude.use("db"):null; }catch(e){ p=null; } if(!p||typeof p.then!=="function"){ finishNoDB(); return; } p.then(function(api){ if(!api){ finishNoDB(); return; } db=api; try{ docRef=db.doc("state/"+activePid); }catch(e){ docRef=null; } if(!docRef){ dataSource="local"; return; } var g; try{ g=docRef.get(); }catch(e){ g=null; } if(g&&typeof g.then==="function"){ g.then(function(snap){ var obj=normalizeDoc(snap); if(hasData(obj)) adoptState(obj,"db"); else { var seed=readLocal(); if(hasData(seed)) adoptState(seed,"db"); queueWrite(); } subscribe(); }).catch(function(){ subscribe(); dataSource="db"; }); } else { subscribe(); dataSource="db"; } }).catch(function(){ finishNoDB(); }); }
@@ -1356,7 +1388,11 @@
     exp.push(gtx(13,120,"MYR","Batu Caves souvenirs","Shopping"));
     exp.push(gtx(14,18,"MYR","Kopi & teh tarik","F&B"));
     exp.push(gtx(15,2000,"INR","Airport lounge (paid in INR)","Travel"));
-    return {_sample:false,expenses:exp,recurring:rec,income:inc,incomeRecurring:incRec,trips:trips,rules:DEFAULT_RULES.slice(),categories:guestCats(),incomeCategories:DEFAULT_INCOME_CATS.slice(),settings:{currency:CURMAP.INR||CURRENCIES[0],fallbackCat:"Needs Review",palette:(state.settings&&state.settings.palette)||"ledger"}}; }
+    /* a couple of non-trip USD subscriptions, so the Currencies list has a managed default rate to demo */
+    var cy=+cur.split("-")[0],cm=+cur.split("-")[1],uRate=83.5;
+    exp.push({id:"gusd1",amount:Math.round(12*uRate),description:"iCloud+ storage",category:"Subscriptions",ts:new Date(cy,cm-1,5,12).getTime(),source:"Guest",cur:"USD",oamt:12,rate:uRate});
+    exp.push({id:"gusd2",amount:Math.round(9*uRate),description:"Spotify (billed USD)",category:"Subscriptions",ts:new Date(cy,cm-1,12,12).getTime(),source:"Guest",cur:"USD",oamt:9,rate:uRate});
+    return {_sample:false,expenses:exp,recurring:rec,income:inc,incomeRecurring:incRec,trips:trips,rates:{USD:uRate,MYR:tRate},rules:DEFAULT_RULES.slice(),categories:guestCats(),incomeCategories:DEFAULT_INCOME_CATS.slice(),settings:{currency:CURMAP.INR||CURRENCIES[0],fallbackCat:"Needs Review",palette:(state.settings&&state.settings.palette)||"ledger"}}; }
   function subscribe(){ try{ if(docRef&&typeof docRef.onSnapshot==="function"){ docRef.onSnapshot(function(snap){ var obj=normalizeDoc(snap); if(hasData(obj)){ setStateFrom(migrate(obj)); state._sample=false; dataSource="db"; cacheLocal(); rebuildSelects(); renderAll(true); } }); } }catch(e){} }
   function sampleState(){ var now=new Date(); function d(dd){ return new Date(now.getFullYear(),now.getMonth(),dd,12).getTime(); } return {_sample:true,expenses:[{id:"s1",amount:240,description:"coffee with team",category:"Dining",ts:d(3),source:"Sample"},{id:"s2",amount:1850,description:"grocery run",category:"Groceries",ts:d(6),source:"Sample"},{id:"s3",amount:600,description:"uber rides",category:"Transport",ts:d(9),source:"Sample"}],recurring:[{id:"sr1",kind:"recurring",description:"Streaming plan",monthly:499,category:"Subscriptions",startYM:ymOfDate(now),endYM:ymAdd(ymOfDate(now),4)}],income:[],incomeRecurring:[{id:"si1",kind:"recurring",description:"Salary",monthly:90000,category:"Salary",startYM:ymAdd(ymOfDate(now),-2),endYM:null}],rules:DEFAULT_RULES.slice(),categories:DEFAULT_CATS.slice(),incomeCategories:DEFAULT_INCOME_CATS.slice(),settings:{currency:CURRENCIES[0],fallbackCat:"Needs Review"}}; }
 
@@ -1386,7 +1422,7 @@
     if(screenLocked(screen)){ var sb0=el("sumbar"); if(sb0)sb0.classList.remove("show"); return; }
     if(screen==="burn"||screen==="income") renderFlow(flowSide(),animate);
     else if(screen==="insights") renderInsights(animate);
-    else if(screen==="settings"){ renderRules(); renderCatMgmt(); renderRecMgr(); renderIncomeMgr(); renderIncCatMgr(); renderPrivacy(); renderHomeCur(); renderProfSub(); renderTrips(); renderMore(); applyPalette(curPalette()); }
+    else if(screen==="settings"){ renderRules(); renderCatMgmt(); renderRecMgr(); renderIncomeMgr(); renderIncCatMgr(); renderPrivacy(); renderHomeCur(); renderProfSub(); renderTrips(); renderCurrencies(); renderMore(); applyPalette(curPalette()); }
   }
   function periodTitle(){ return gran==="year"?"Year over year":gran==="quarter"?"Quarter over quarter":"Month over month"; }
   function renderHeader(){
@@ -1710,6 +1746,25 @@
     el("trip-edit").addEventListener("click",function(){ openTripEdit(t.id); });
   }
   function viewTripInBurn(id){ showTripDet(false); setScreen("burn"); FILT=emptyFilt(); FILT.trips=[id]; lastHeroTotal=0; syncSearchInput(); renderFlow("burn",true); toast("Filtered to "+tripName(id)); }
+  /* ---- Currencies & rates ---- */
+  function rateStr(r){ r=+r||0; if(r>=100)return String(Math.round(r)); if(r>=1)return String(Math.round(r*100)/100); return String(Math.round(r*10000)/10000); }
+  function renderCurrencies(){ var box=el("currencies-list"); if(!box)return; var home=homeCode(),codes=ratesUsed().filter(function(c){return c!==home;});
+    if(!codes.length){ box.innerHTML='<div class="emptybox" style="margin-top:4px"><p>No currencies yet. Add one here, or just pick a currency when logging a spend.</p></div>'; return; }
+    var pen='<svg viewBox="0 0 24 24" fill="none"><path d="M4 20h4L18.5 9.5a2 2 0 0 0-2.8-2.8L5 17.2V20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    box.innerHTML=codes.map(function(code){ var c=curByCode(code),n=0; state.expenses.forEach(function(e){ if(e.cur===code)n++; }); return '<button class="curaterow" data-cur="'+escapeHtml(code)+'"><span class="csym">'+escapeHtml(c.symbol||code)+'</span><span class="cinfo"><b>'+escapeHtml(code)+' · '+escapeHtml(c.name)+'</b><small>'+n+' transaction'+(n===1?"":"s")+'</small></span><span class="crate">1 '+escapeHtml(code)+' = '+escapeHtml(sym())+rateStr(state.rates[code])+pen+'</span></button>'; }).join("");
+    box.querySelectorAll(".curaterow").forEach(function(b){ b.addEventListener("click",function(){ editCurRate(b.getAttribute("data-cur")); }); });
+  }
+  function editCurRate(code){ var home=homeCode(),cur=curByCode(code),cnt=state.expenses.filter(function(e){return e.cur===code&&!e.trip;}).length; _rateCb=null; _rateCancel=null;
+    el("ratetitle").textContent="Edit "+code+" rate";
+    el("ratebody").innerHTML='<p class="note" style="margin:0 0 15px">How much is <b>1 '+escapeHtml(code)+'</b> worth in '+escapeHtml(home)+'?</p><div class="rateform"><span class="rateq">1 '+escapeHtml(cur.symbol||code)+'&nbsp;=</span><span class="rateeq">'+escapeHtml(sym())+'</span><input id="rateinp" class="tf tnum" inputmode="decimal" value="'+rateStr(state.rates[code])+'" autocomplete="off"></div>'+
+      (cnt>0?'<label class="fld" style="margin-top:16px"><span class="lab">Apply the new rate to</span><span class="selwrap"><select class="tf" id="rateapply"><option value="future">Future spends only</option><option value="all">Re-rate all '+cnt+' past '+escapeHtml(code)+' spend'+(cnt===1?"":"s")+'</option></select></span></label><p class="note" style="margin:8px 0 0;font-size:12px">Trip spends keep their trip’s own rate.</p>':'')+
+      '<button class="btn wide" id="ratesave" style="margin-top:16px">Save</button>'+
+      '<button class="btn ghost wide" id="ratedel" style="margin-top:9px;color:var(--bad)">Remove currency</button>';
+    showRateScrim(true); setTimeout(function(){ try{ el("rateinp").focus(); }catch(e){} },150);
+    el("ratesave").onclick=function(){ var v=parseFloat(el("rateinp").value)||0; if(!(v>0)){ toast("Enter a rate above 0"); return; } state.rates[code]=v; var ap=el("rateapply"); if(ap&&ap.value==="all"){ var ch=0; state.expenses.forEach(function(e){ if(e.cur===code&&!e.trip){ e.rate=v; e.amount=Math.round((+e.oamt||0)*v); ch++; } }); toast("Re-rated "+ch+" "+code+" spend"+(ch===1?"":"s")); } else toast(code+" rate updated"); _rateCancel=null; _rateCb=null; showRateScrim(false); queueWrite(); renderCurrencies(); renderAll(false); };
+    el("ratedel").onclick=function(){ if(state.expenses.some(function(e){return e.cur===code;})){ toast("In use — spends are logged in "+code); return; } delete state.rates[code]; _rateCancel=null; _rateCb=null; showRateScrim(false); queueWrite(); renderCurrencies(); toast("Removed "+code); };
+  }
+  function addCurrency(){ var home=homeCode(); openCurPicker({title:"Add a currency",current:null,quick:[],onPick:function(code){ if(code===home){ toast("That's your home currency"); return; } if(+state.rates[code]>0){ editCurRate(code); return; } promptRate(code,function(nr){ state.rates[code]=nr; queueWrite(); renderCurrencies(); toast("Added "+code); },function(){}); } }); }
   function subOpen(){ return !!document.querySelector("#view-settings .subsec:not([hidden])"); }
   function resetMore(){ var h=el("morehub"); if(h)h.hidden=false; var ss=document.querySelectorAll("#view-settings .subsec"); for(var i=0;i<ss.length;i++)ss[i].hidden=true; }
   function openSub(key){ if(key==="erase"){ var ic=el("imp-clear"); if(ic)ic.click(); return; } var sec=el("sub-"+key); if(!sec)return; el("morehub").hidden=true; var ss=document.querySelectorAll("#view-settings .subsec"); for(var i=0;i<ss.length;i++)ss[i].hidden=(ss[i]!==sec); try{ window.scrollTo(0,0); }catch(e){} overlayShown(); }
@@ -1817,12 +1872,23 @@
   function humanDate(v){ if(!v)return "Today"; var p=String(v).split("-"); if(p.length<3)return v; var d=new Date(+p[0],+p[1]-1,+p[2]),n=new Date(); if(d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth()&&d.getDate()===n.getDate())return "Today"; var s=d.getDate()+" "+MON[d.getMonth()]; if(d.getFullYear()!==n.getFullYear())s+=" "+String(d.getFullYear()).slice(2); return s; }
   function syncDateLbl(){ var l=el("pdatelbl"),i=el("pdate"); if(l&&i)l.textContent=humanDate(i.value); }
   function fitAmount(){ var pa=el("pamt"); if(!pa)return; var len=(pa.textContent||"").length; pa.style.fontSize=(len<=7?26:len<=10?22:len<=12?18:len<=14?16:len<=16?14:12)+"px"; }
-  function updatePreview(){ var val=el("entry").value,p=parseEntry(val); if(addAutoCat)addCat=p.category; var pa=el("pamt"),home=homeCode(),foreign=addCur!==home,oamt=(p.amount!=null&&p.amount>0)?p.amount:null; if(oamt!=null){ pa.textContent=foreign?fmtCur(oamt,addCur):money(oamt); pa.classList.remove("empty"); } else { pa.textContent=(foreign?curByCode(addCur).symbol:sym())+"·"; pa.classList.add("empty"); } fitAmount(); renderAddFx(oamt); renderCatChips(); renderSuggest(p.description); syncDateLbl(); validate(); }
+  function curNum(n,code){ var c=curByCode(code),l=c.locale||"en-US",k="n_"+l; if(!_fc[k]){ try{ _fc[k]=new Intl.NumberFormat(l,{maximumFractionDigits:0}); }catch(e){ _fc[k]=new Intl.NumberFormat("en-US",{maximumFractionDigits:0}); } } return _fc[k].format(Math.round(n||0)); }
+  function updatePreview(){ var val=el("entry").value,p=parseEntry(val); if(addAutoCat)addCat=p.category; var pa=el("pamt"),home=homeCode(),foreign=addCur!==home,oamt=(p.amount!=null&&p.amount>0)?p.amount:null; if(oamt!=null){ pa.textContent=foreign?curNum(oamt,addCur):fmtN(oamt); pa.classList.remove("empty"); } else { pa.textContent="·"; pa.classList.add("empty"); } fitAmount(); renderAddFx(oamt); renderCatChips(); renderSuggest(p.description); syncDateLbl(); validate(); }
   function addDateTs(){ var v=el("pdate").value; return v?new Date(v+"T12:00:00").getTime():Date.now(); }
   function applyTripDefault(){ if(_addCurManual)return; var t=tripForDate(addDateTs()); if(t){ addTrip=t.id; addCur=t.cur; addRate=t.rate; } else { addTrip=null; addCur=homeCode(); addRate=1; } }
-  function renderAddFx(oamt){ var home=homeCode(),foreign=addCur!==home,cb=el("curbtnc"); if(cb)cb.textContent=addCur; var rw=el("fxrw"); if(rw){ rw.hidden=!foreign; if(foreign){ el("fxcode").textContent=addCur; var ri=el("fxrateinp"); if(ri&&document.activeElement!==ri)ri.value=(addRate||""); } } var conv=el("fxconv"); if(conv){ if(foreign&&oamt!=null&&oamt>0&&addRate>0){ conv.hidden=false; conv.textContent="≈ "+money(Math.round(oamt*addRate)); } else conv.hidden=true; } var tag=el("addtriptag"),t=tripById(addTrip); if(tag){ if(t){ tag.hidden=false; tag.textContent=t.name; } else tag.hidden=true; } }
+  function renderAddFx(oamt){ var home=homeCode(),foreign=addCur!==home; var cur=el("pamtcur"); if(cur)cur.innerHTML=escapeHtml(foreign?(curByCode(addCur).symbol||addCur):sym())+'<svg class="curcaret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'; var conv=el("fxconv"),showConv=foreign&&oamt!=null&&oamt>0&&addRate>0; if(conv){ conv.hidden=!showConv; if(showConv)conv.textContent="≈ "+money(Math.round(oamt*addRate)); } var t=tripById(addTrip),tag=el("addtriptag"); if(tag){ if(t){ tag.hidden=false; tag.textContent=t.name+(foreign?" · "+addCur:""); } else tag.hidden=true; } var bar=el("fxbar"); if(bar)bar.hidden=!(showConv||t); }
   var _curCb=null,_curQuick=[],_curSel=null;
-  function openCurMenu(){ var home=homeCode(),t=tripById(addTrip),quick=[]; if(t)quick.push({code:t.cur,label:"Trip default"}); quick.push({code:home,label:"Home"}); openCurPicker({title:"Currency for this expense",current:addCur,quick:quick,onPick:function(code){ _addCurManual=true; addCur=code; addRate=(t&&code===t.cur)?t.rate:(code===home?1:1); updatePreview(); if(code!==home){ var ri=el("fxrateinp"); if(ri)setTimeout(function(){ ri.focus(); },80); } }}); }
+  function openCurMenu(){ var home=homeCode(),ts=addDateTs(),t=tripForDate(ts),quick=[]; quick.push({code:home,label:"Home"}); if(t&&t.cur!==home)quick.push({code:t.cur,label:t.name}); ratesUsed().forEach(function(code){ if(code!==home&&!(t&&code===t.cur))quick.push({code:code,label:""}); });
+    openCurPicker({title:"Currency for this expense",current:addCur,quick:quick,onPick:function(code){ _addCurManual=true; if(code===home){ addCur=home; addRate=1; updatePreview(); return; } var tt=tripForDate(addDateTs()); if(tt&&tt.cur===code){ addCur=code; addRate=+tt.rate||1; addTrip=tt.id; updatePreview(); return; } var r=+state.rates[code]||0; if(r>0){ addCur=code; addRate=r; updatePreview(); } else { promptRate(code,function(nr){ state.rates[code]=nr; addCur=code; addRate=nr; queueWrite(); updatePreview(); if(typeof renderTrips==="function"&&screen==="settings")renderTrips(); },function(){ updatePreview(); }); } }}); }
+  var _rateCb=null,_rateCancel=null;
+  function promptRate(code,onSave,onCancel){ _rateCb=onSave||null; _rateCancel=onCancel||null; var c=curByCode(code),home=homeCode();
+    el("ratetitle").textContent="Set your "+code+" rate";
+    el("ratebody").innerHTML='<p class="note" style="margin:0 0 15px">How much is <b>1 '+escapeHtml(code)+'</b> in your home currency ('+escapeHtml(home)+')? You set this once — change it anytime in Trips &amp; FX.</p><div class="rateform"><span class="rateq">1 '+escapeHtml(c.symbol||code)+'&nbsp;=</span><span class="rateeq">'+escapeHtml(sym())+'</span><input id="rateinp" class="tf tnum" inputmode="decimal" placeholder="e.g. 83.20" autocomplete="off"></div><button class="btn wide" id="ratesave" style="margin-top:16px">Save rate</button>';
+    showRateScrim(true); setTimeout(function(){ try{ el("rateinp").focus(); }catch(e){} },150);
+    function save(){ var v=parseFloat(el("rateinp").value)||0; if(!(v>0)){ toast("Enter a rate above 0"); return; } var cb=_rateCb; _rateCb=null; _rateCancel=null; showRateScrim(false); if(cb)cb(v); }
+    el("ratesave").onclick=save; el("rateinp").onkeydown=function(e){ if(e.key==="Enter")save(); };
+  }
+  function showRateScrim(show){ var s=el("ratescrim"); if(!s)return; if(show){ s.hidden=false; requestAnimationFrame(function(){ s.classList.add("show"); }); document.body.style.overflow="hidden"; overlayShown(); } else { s.classList.remove("show"); document.body.style.overflow=""; overlayHidden(); setTimeout(function(){ s.hidden=true; },300); var cc=_rateCancel; _rateCancel=null; _rateCb=null; if(cc)cc(); } }
   function openCurPicker(opts){ _curCb=opts.onPick||null; _curQuick=opts.quick||[]; _curSel=opts.current||null; el("curtitle").textContent=opts.title||"Currency"; el("cursearch").value=""; renderCurPickList(""); showCurScrim(true); setTimeout(function(){ try{ el("cursearch").focus(); }catch(e){} },140); }
   function curPickRow(c,label){ var on=_curSel===c.code; return '<button class="currow'+(on?" on":"")+'" data-cc="'+c.code+'"><span class="cursym">'+escapeHtml(c.symbol||c.code)+'</span><span class="curnm"><b>'+c.code+'</b> '+escapeHtml(c.name)+'</span>'+(label?'<span class="curlab">'+escapeHtml(label)+'</span>':(on?'<span class="curlab">✓</span>':''))+'</button>'; }
   function renderCurPickList(q){ q=(q||"").trim().toLowerCase(); var box=el("curlist"),html=""; if(!box)return; if(!q&&_curQuick.length){ html+='<div class="curqlab">Quick</div>'; _curQuick.forEach(function(x){ html+=curPickRow(curByCode(x.code),x.label); }); html+='<div class="curqlab">All currencies</div>'; } var seen={}; CURRENCIES.forEach(function(c){ if(seen[c.code])return; seen[c.code]=1; if(q&&c.code.toLowerCase().indexOf(q)<0&&c.name.toLowerCase().indexOf(q)<0)return; html+=curPickRow(c,null); }); box.innerHTML=html; box.querySelectorAll("[data-cc]").forEach(function(b){ b.addEventListener("click",function(){ var code=b.getAttribute("data-cc"); showCurScrim(false); if(_curCb)_curCb(code); }); }); }
@@ -1862,7 +1928,7 @@
   var _navPop=false;
   function overlayShown(){ try{ history.pushState({lo:1},""); }catch(e){} }
   function overlayHidden(){ if(_navPop)return; try{ if(history.state&&history.state.lo) history.back(); }catch(e){} }
-  function closeTopOverlay(){ if(el("curscrim")&&!el("curscrim").hidden){ showCurScrim(false); return true; } if(el("tripedscrim")&&!el("tripedscrim").hidden){ showTripEd(false); return true; } if(el("tripscrim")&&!el("tripscrim").hidden){ showTripDet(false); return true; } if(el("catdetscrim")&&!el("catdetscrim").hidden){ showCatDet(false); return true; } if(screen==="settings"&&subOpen()){ closeSub(); return true; } if(arrangeMode){ exitArrange(); return true; } if(el("filtscrim")&&!el("filtscrim").hidden){ closeFilt(); return true; } if(el("profscrim")&&!el("profscrim").hidden){ showProf(false); return true; } if(el("movescrim")&&!el("movescrim").hidden){ showMove(false); return true; } if(el("bktscrim")&&!el("bktscrim").hidden){ showBkt(false); return true; } if(el("scrim")&&!el("scrim").hidden){ showSheet(false); return true; } if(el("tour")&&!el("tour").hidden){ endTour(); return true; } return false; }
+  function closeTopOverlay(){ if(el("ratescrim")&&!el("ratescrim").hidden){ showRateScrim(false); return true; } if(el("curscrim")&&!el("curscrim").hidden){ showCurScrim(false); return true; } if(el("tripedscrim")&&!el("tripedscrim").hidden){ showTripEd(false); return true; } if(el("tripscrim")&&!el("tripscrim").hidden){ showTripDet(false); return true; } if(el("catdetscrim")&&!el("catdetscrim").hidden){ showCatDet(false); return true; } if(screen==="settings"&&subOpen()){ closeSub(); return true; } if(arrangeMode){ exitArrange(); return true; } if(el("filtscrim")&&!el("filtscrim").hidden){ closeFilt(); return true; } if(el("profscrim")&&!el("profscrim").hidden){ showProf(false); return true; } if(el("movescrim")&&!el("movescrim").hidden){ showMove(false); return true; } if(el("bktscrim")&&!el("bktscrim").hidden){ showBkt(false); return true; } if(el("scrim")&&!el("scrim").hidden){ showSheet(false); return true; } if(el("tour")&&!el("tour").hidden){ endTour(); return true; } return false; }
   window.addEventListener("popstate",function(){ _navPop=true; try{ closeTopOverlay(); }catch(e){} _navPop=false; });
   function showSheet(show){ var s=el("scrim"); if(show){ s.hidden=false; requestAnimationFrame(function(){ s.classList.add("show"); }); document.body.style.overflow="hidden"; overlayShown(); } else { s.classList.remove("show"); document.body.style.overflow=""; overlayHidden(); setTimeout(function(){ s.hidden=true; },340); } }
   function showBkt(show){ var s=el("bktscrim"); if(!s)return; if(show){ s.hidden=false; requestAnimationFrame(function(){ s.classList.add("show"); }); document.body.style.overflow="hidden"; overlayShown(); } else { s.classList.remove("show"); document.body.style.overflow=""; overlayHidden(); setTimeout(function(){ s.hidden=true; },340); } }
@@ -1893,7 +1959,7 @@
   function expFxFields(o,oamt){ if(addCur!==homeCode()){ o.cur=addCur; o.oamt=Math.round(oamt); o.rate=addRate; } if(addTrip)o.trip=addTrip; return o; }
   function saveEntry(){
     if(addDomain==="expense"){
-      if(addType==="oneoff"){ var p=parseEntry(el("entry").value); if(!(p.amount!=null&&p.amount>0))return; var foreign=addCur!==homeCode(); if(foreign&&!(addRate>0)){ toast("Enter a conversion rate"); return; } var ts=el("pdate").value?new Date(el("pdate").value+"T12:00:00").getTime():Date.now(); var homeAmt=foreign?Math.round(p.amount*addRate):Math.round(p.amount); if(editId){ state.expenses=state.expenses.map(function(e){ return e.id===editId?expFxFields({id:e.id,amount:homeAmt,description:(p.description||e.description),category:addCat,ts:ts,addedAt:e.addedAt,source:e.source||"Quick Add"},p.amount):e; }); toast("Updated"); } else { state.expenses.push(expFxFields({id:"e"+Date.now()+Math.random().toString(36).slice(2,6),amount:homeAmt,description:p.description,category:addCat,ts:ts,addedAt:Date.now(),source:"Quick Add"},p.amount)); selYM=ymOf(ts); screen="burn"; setNav(); toast("Added "+money(homeAmt)); } }
+      if(addType==="oneoff"){ var p=parseEntry(el("entry").value); if(!(p.amount!=null&&p.amount>0))return; var foreign=addCur!==homeCode(); if(foreign&&!(addRate>0)){ toast("Tap the "+addCur+" symbol to set its rate"); openCurMenu(); return; } var ts=el("pdate").value?new Date(el("pdate").value+"T12:00:00").getTime():Date.now(); var homeAmt=foreign?Math.round(p.amount*addRate):Math.round(p.amount); if(editId){ state.expenses=state.expenses.map(function(e){ return e.id===editId?expFxFields({id:e.id,amount:homeAmt,description:(p.description||e.description),category:addCat,ts:ts,addedAt:e.addedAt,source:e.source||"Quick Add"},p.amount):e; }); toast("Updated"); } else { state.expenses.push(expFxFields({id:"e"+Date.now()+Math.random().toString(36).slice(2,6),amount:homeAmt,description:p.description,category:addCat,ts:ts,addedAt:Date.now(),source:"Quick Add"},p.amount)); selYM=ymOf(ts); screen="burn"; setNav(); toast("Added "+money(homeAmt)); } }
       else if(addType==="recurring"){ var amt=parseNum(el("r-amount").value); if(!(amt>0))return; var og=el("r-ongoing").getAttribute("aria-checked")==="true"; var o={kind:"recurring",description:el("r-desc").value.trim()||"Recurring",category:recCat,monthly:Math.round(amt),total:null,periods:null,startYM:el("r-start").value||nowYM(),endYM:og?null:(el("r-end").value||null),day:Math.min(Math.max(parseInt(el("r-day").value,10)||1,1),31),account:""}; if(editRecId){ o.id=editRecId; state.recurring=state.recurring.map(function(r){return r.id===editRecId?o:r;}); toast("Updated"); } else { o.id="r"+Date.now()+Math.random().toString(36).slice(2,6); state.recurring.push(o); toast("Recurring added"); } }
       else { var c=amortCompute(); if(!c)return; var tot=parseNum(el("a-amount").value),per=parseInt(el("a-periods").value,10),start=el("a-start").value||nowYM(); var o2={kind:"amortized",description:el("a-desc").value.trim()||"Amortized",category:amoCat,monthly:c.mo,total:Math.round(tot),periods:per,startYM:start,endYM:ymAdd(start,per-1),day:Math.min(Math.max(parseInt(el("a-day").value,10)||1,1),31),account:""}; if(editRecId){ o2.id=editRecId; state.recurring=state.recurring.map(function(r){return r.id===editRecId?o2:r;}); toast("Updated"); } else { o2.id="a"+Date.now()+Math.random().toString(36).slice(2,6); state.recurring.push(o2); toast("Amortized added"); } }
     } else {
@@ -1964,7 +2030,7 @@
   el("delbtn").addEventListener("click",deleteEntry);
   el("entry").addEventListener("input",updatePreview);
   el("pdate").addEventListener("change",function(){ syncDateLbl(); applyTripDefault(); updatePreview(); });
-  (function(){ var cb=el("curbtn"); if(cb)cb.addEventListener("click",function(e){ e.preventDefault(); openCurMenu(); }); var ri=el("fxrateinp"); if(ri)ri.addEventListener("input",function(){ var v=parseFloat(ri.value); addRate=(ri.value.trim()===""||isNaN(v))?0:v; _addCurManual=true; renderAddFx((function(){ var p=parseEntry(el("entry").value); return (p.amount!=null&&p.amount>0)?p.amount:null; })()); validate(); }); var cs=el("cursearch"); if(cs)cs.addEventListener("input",function(){ renderCurPickList(cs.value); }); var sc=el("curscrim"); if(sc)sc.addEventListener("click",function(e){ if(e.target===sc)showCurScrim(false); }); })();
+  (function(){ var cb=el("pamtcur"); if(cb)cb.addEventListener("click",function(e){ e.preventDefault(); openCurMenu(); }); var cs=el("cursearch"); if(cs)cs.addEventListener("input",function(){ renderCurPickList(cs.value); }); var sc=el("curscrim"); if(sc)sc.addEventListener("click",function(e){ if(e.target===sc)showCurScrim(false); }); var rsc=el("ratescrim"); if(rsc)rsc.addEventListener("click",function(e){ if(e.target===rsc)showRateScrim(false); }); })();
   el("entry").addEventListener("keydown",function(e){ if(e.key==="Enter"&&!el("savebtn").disabled) saveEntry(); });
   ["r-amount","r-desc","r-start","r-end","i-amount","i-desc","i-date","im-amount","im-desc","im-start","im-end"].forEach(function(id){ el(id).addEventListener("input",validate); });
   ["a-amount","a-desc","a-start","a-periods"].forEach(function(id){ el(id).addEventListener("input",function(){ amortCompute(); validate(); }); });
@@ -2092,7 +2158,7 @@
   (function(){ var pr=el("palrow"); if(pr)pr.querySelectorAll(".palbtn").forEach(function(b){ b.addEventListener("click",function(){ applyPalette(b.getAttribute("data-pal")); queueWrite(); renderAll(false); }); }); })();
   (function(){ var vs=el("view-settings"); if(vs)vs.addEventListener("click",function(e){ var row=e.target.closest(".mrow"); if(row){ openSub(row.getAttribute("data-sub")); return; } var bk=e.target.closest(".subback"); if(bk){ closeSub(); } }); })();
   (function(){ var hb=el("homecurchange"); if(hb)hb.addEventListener("click",function(){ openCurPicker({title:"Home currency",current:homeCode(),onPick:function(code){ state.settings.currency=curByCode(code); _fc={}; queueWrite(); renderHomeCur(); renderMore(); renderAll(false); toast("Home currency: "+code); }}); }); var cs=el("cm-search"); if(cs)cs.addEventListener("input",function(){ cmSearch=cs.value; renderCatMgmt(); }); var cds=el("catdetscrim"); if(cds)cds.addEventListener("click",function(e){ if(e.target===cds)showCatDet(false); }); })();
-  (function(){ var tn=el("trip-new"); if(tn)tn.addEventListener("click",openTripNew); var ts=el("tripscrim"); if(ts)ts.addEventListener("click",function(e){ if(e.target===ts)showTripDet(false); }); var te=el("tripedscrim"); if(te)te.addEventListener("click",function(e){ if(e.target===te)showTripEd(false); }); })();
+  (function(){ var tn=el("trip-new"); if(tn)tn.addEventListener("click",openTripNew); var ca=el("cur-add"); if(ca)ca.addEventListener("click",addCurrency); var ts=el("tripscrim"); if(ts)ts.addEventListener("click",function(e){ if(e.target===ts)showTripDet(false); }); var te=el("tripedscrim"); if(te)te.addEventListener("click",function(e){ if(e.target===te)showTripEd(false); }); })();
   function hasOpt(sel,v){ if(!sel)return false; for(var i=0;i<sel.options.length;i++)if(sel.options[i].value===v)return true; return false; }
   el("r-desc").addEventListener("input",function(){ if(recAutoCat){ var c=categorize(el("r-desc").value); if(state.categories.some(function(x){return x.name===c;})){ recCat=c; renderRecCat(); } } });
   el("a-desc").addEventListener("input",function(){ if(amoAutoCat){ var c=categorize(el("a-desc").value); if(state.categories.some(function(x){return x.name===c;})){ amoCat=c; renderAmoCat(); } } });
@@ -2303,6 +2369,9 @@ var XLSXm = (function () {
         (kind==="income"?state.income:state.expenses).push(rec); n++; }
       return n;
     }
+    if(kind==="currencies"){
+      var cn0=col(["currency","code"],0),cr0=col(["rate"],1); for(i=start;i<rs.length;i++){ var cq=rs[i],cc0=(cq[cn0]||"").toString().trim().toUpperCase(),rt0=parseNum(cq[cr0]); if(cc0&&cc0!==homeCode()&&rt0>0){ state.rates[cc0]=rt0; n++; } } return n;
+    }
     if(kind==="trips"){
       var tn2=col(["name"],0),ts2=col(["start"],1),te2=col(["end"],2),tc2=col(["currency"],3),tr2=col(["rate"],4),th2=col(["home"],5);
       for(i=start;i<rs.length;i++){ var tq=rs[i]; var nm=(tq[tn2]||"").toString().trim(); if(!nm)continue; var curc=((tq[tc2]||"").toString().trim().toUpperCase())||"USD",rate=parseNum(tq[tr2])||1,hc=((th2>-1&&tq[th2]!=null)?tq[th2].toString().trim().toUpperCase():"")||homeCode(); state.trips.push({id:newId("t"),name:nm.slice(0,40),start:normTripDate(tq[ts2]),end:normTripDate(tq[te2]),cur:curc,rate:rate,homeCode:hc}); n++; }
@@ -2319,6 +2388,7 @@ var XLSXm = (function () {
 
   function kindOfSheet(name){ var s=(name||"").toLowerCase();
     if(/engine|rule/.test(s)) return "rules";
+    if(/currenc/.test(s)) return "currencies";
     if(/trip/.test(s)) return "trips";
     if(/income/.test(s)) return (/recur|monthly/.test(s))?"increc":"income";
     if(/recur|amort/.test(s)) return "recurring";
@@ -2329,11 +2399,11 @@ var XLSXm = (function () {
   function normTripDate(v){ v=String(v==null?"":v).trim(); if(!v)return null; var m=v.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m)return m[1]+"-"+m[2]+"-"+m[3]; var d=new Date(v); if(!isNaN(d.getTime()))return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); return null; }
   function importWorkbook(sheets){
     impStats.undated=0;
-    function rank(n){ return /engine|rule/i.test(n)?0:/trip/i.test(n)?1:2; }
+    function rank(n){ return /engine|rule/i.test(n)?0:/currenc|trip/i.test(n)?1:2; }
     var ordered=sheets.slice().sort(function(a,b){ return rank(a.name)-rank(b.name); });
     /* replace-per-tab: clear each target that has a data-bearing tab, so re-importing your file overwrites instead of stacking duplicates */
     var reset={}; ordered.forEach(function(sh){ var k=kindOfSheet(sh.name); if(k&&(sh.rows||[]).length>1) reset[k]=1; });
-    if(reset.trips) state.trips=[]; if(reset.expenses) state.expenses=[]; if(reset.recurring) state.recurring=[]; if(reset.income) state.income=[]; if(reset.increc) state.incomeRecurring=[];
+    if(reset.currencies) state.rates={}; if(reset.trips) state.trips=[]; if(reset.expenses) state.expenses=[]; if(reset.recurring) state.recurring=[]; if(reset.income) state.income=[]; if(reset.increc) state.incomeRecurring=[];
     var total=0, kinds={};
     ordered.forEach(function(sh){ var kind=kindOfSheet(sh.name); if(kind){ var c=importRows(kind,sh.rows); total+=c; kinds[kind]=(kinds[kind]||0)+c; } });
     return {total:total,kinds:kinds,undated:impStats.undated};
@@ -2343,7 +2413,7 @@ var XLSXm = (function () {
     setStateFrom(migrate(exportPayload())); queueWrite(); rebuildSelects();
     selYM=nowYM(); if(typeof setNav==="function")setNav(); renderAll(true);
     if(!res.total){ toast("No rows found, check the tab names & header row"); return; }
-    var bits=[]; if(res.kinds.rules)bits.push(res.kinds.rules+" rules"); if(res.kinds.expenses)bits.push(res.kinds.expenses+" expenses"); if(res.kinds.recurring)bits.push(res.kinds.recurring+" recurring"); if(res.kinds.income)bits.push(res.kinds.income+" income"); if(res.kinds.increc)bits.push(res.kinds.increc+" monthly income"); if(res.kinds.trips)bits.push(res.kinds.trips+" trips");
+    var bits=[]; if(res.kinds.rules)bits.push(res.kinds.rules+" rules"); if(res.kinds.expenses)bits.push(res.kinds.expenses+" expenses"); if(res.kinds.recurring)bits.push(res.kinds.recurring+" recurring"); if(res.kinds.income)bits.push(res.kinds.income+" income"); if(res.kinds.increc)bits.push(res.kinds.increc+" monthly income"); if(res.kinds.trips)bits.push(res.kinds.trips+" trips"); if(res.kinds.currencies)bits.push(res.kinds.currencies+" currencies");
     toast("Imported "+bits.join(" · ")+(res.undated?(" · "+res.undated+" had no clear date"):""));
   }
 
@@ -2379,7 +2449,9 @@ var XLSXm = (function () {
     state.incomeRecurring.forEach(function(r){ irec.push([r.description||"",r.monthly||0,ymLabel(r.startYM),ymLabel(r.endYM),r.category||"",r.monthly||0]); });
     var trp=[["Name","Start","End","Currency","Conversion Rate","Home Currency"]];
     state.trips.forEach(function(t){ trp.push([t.name||"",t.start||"",t.end||"",t.cur||"",t.rate||1,t.homeCode||homeCode()]); });
-    saveXlsx("Ledger-"+nowYM()+".xlsx",[{name:"Category Engine",rows:eng},{name:"Expense Data",rows:exp},{name:"Recurring & Amortized",rows:rec},{name:"Income Data",rows:inc},{name:"Recurring Income",rows:irec},{name:"Trips",rows:trp}]);
+    var crr=[["Currency","Default Rate","Home Currency"]];
+    ratesUsed().forEach(function(code){ if(code!==homeCode())crr.push([code,state.rates[code],homeCode()]); });
+    saveXlsx("Ledger-"+nowYM()+".xlsx",[{name:"Category Engine",rows:eng},{name:"Expense Data",rows:exp},{name:"Recurring & Amortized",rows:rec},{name:"Income Data",rows:inc},{name:"Recurring Income",rows:irec},{name:"Trips",rows:trp},{name:"Currencies",rows:crr}]);
   }
   function tplAll(){
     saveXlsx("Ledger-Template.xlsx",[
@@ -2388,7 +2460,8 @@ var XLSXm = (function () {
       {name:"Recurring & Amortized",rows:[["Description","Type","Amount","Start","End","Periods","Category","Monthly"],["House Expense","Recurring",40000,"Aug 26","Dec 28","","Family Spending",40000],["iPhone 15","Amortized",90000,"Jan 25","Dec 25",12,"Shopping - Wants",7500]]},
       {name:"Income Data",rows:[["Amount","Description","Month #","Category","MM YY","Year","Source"],["₹1,20,000","Salary",9,"Salary","Sep 25",2025,"Company"]]},
       {name:"Recurring Income",rows:[["Description","Amount","Start","End","Category","Monthly"],["Salary",120000,"Jan 25","","Salary",120000]]},
-      {name:"Trips",rows:[["Name","Start","End","Currency","Conversion Rate","Home Currency"],["Malaysia","2025-06-10","2025-06-16","MYR",19.2,"INR"]]}
+      {name:"Trips",rows:[["Name","Start","End","Currency","Conversion Rate","Home Currency"],["Malaysia","2025-06-10","2025-06-16","MYR",19.2,"INR"]]},
+      {name:"Currencies",rows:[["Currency","Default Rate","Home Currency"],["USD",83.5,"INR"],["MYR",19.2,"INR"]]}
     ]);
   }
 
