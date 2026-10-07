@@ -492,9 +492,10 @@
   .curaterow .cinfo small{font-size:12px;color:var(--ink-4)}
   .curaterow .crate{font-weight:700;font-size:13.5px;color:var(--ink-2);white-space:nowrap;display:flex;align-items:center;gap:6px}
   .curaterow .crate svg{width:15px;height:15px;color:var(--ink-4)}
-  .morebar{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:11px 18px 4px;margin-top:2px}
-  .morebar-sep{border-top:1px solid var(--sep);margin-top:2px}
+  .morebar{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;width:100%;padding:15px 18px 17px;margin-top:2px}
+  .morebar-sep{border-top:1px solid var(--sep);margin-top:4px}
   .morebar .mbcount{font-size:12.5px;color:var(--ink-4);font-weight:500;line-height:1}
+  .morebar .mbdiv{width:1px;height:13px;background:var(--sep-strong);border-radius:1px;flex:none}
   .morebar .mbmore{font-size:13px;color:var(--acc);font-weight:700;cursor:pointer;background:none;border:none;padding:0;margin:0;display:inline-flex;align-items:center;gap:4px;line-height:1;white-space:nowrap}
   .morebar .mbmore:active{opacity:.6}
   .morebar .mbmore svg{width:14px;height:14px;flex:none}
@@ -783,7 +784,7 @@
         <button class="mrow mrow-bad" data-sub="erase"><span class="mrl"><span class="mi"><svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14M10 7V5h4v2M6 7l1 13h10l1-13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Erase all data</span></button>
         <button class="mrow" data-sub="about"><span class="mrl"><span class="mi"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 11v5M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>About</span><span class="mrr"><svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
       </div>
-      <p class="foot" style="margin-top:20px">Ledger <b>V30</b> · your data stays on this device</p>
+      <p class="foot" style="margin-top:20px">Ledger <b>V33</b> · your data stays on this device</p>
     </div>
 
     <section class="subsec" id="sub-appearance" hidden><div class="subhd"><button class="subback" aria-label="Back"><svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2>Appearance</h2></div>
@@ -890,7 +891,7 @@
     <section class="subsec" id="sub-about" hidden><div class="subhd"><button class="subback" aria-label="Back"><svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2>About</h2></div>
       <div style="background:var(--card);box-shadow:var(--shadow);border-radius:var(--radius);padding:20px">
         <b style="font-size:21px;font-weight:800;letter-spacing:-.01em">Ledger</b>
-        <p class="note" style="margin-top:7px">Version <b>V30</b> · a private money tracker that lives only on this device. Income &amp; spending by month, quarter and year, in any currency, with trips &amp; FX.</p>
+        <p class="note" style="margin-top:7px">Version <b>V33</b> · a private money tracker that lives only on this device — nothing leaves your phone. See income and spending by month, quarter and year, in any currency with trips and a fixed FX rate. Log one-off, recurring and amortized expenses, and monthly or one-off income, auto-sorted into categories you control. Privately lock sensitive categories, or whole screens, behind a password, and back everything up to a single Excel file.</p>
         <a class="footx" href="https://x.com/tshrrrp" target="_blank" rel="noopener noreferrer" style="margin-top:14px"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>@tshrrrp</a>
       </div>
     </section>
@@ -1515,7 +1516,7 @@
     var html=(rows.length>=2?'<div class="catcap">Top <b>'+vitalN+'</b> '+(vitalN===1?"category makes":"categories make")+' ~80% of '+(side==="income"?"income":"spend")+'</div>':""); vis.forEach(function(r,i){ var p=pct(r.value,tot),col=colorIn(r.cat,cats),other=(r.cat===OTHERS),vital=(i<vitalN);
       if(other){ html+='<div class="catline" style="cursor:default"><span class="catdisc" style="background:'+col+';width:10px;height:10px;border-radius:3px;flex:none"></span><span class="cn"><span class="t">Others <span style="color:var(--ink-4);font-weight:500;font-size:12px">· hidden</span></span><span class="bar"><i style="width:'+p+'%;background:'+col+'"></i></span></span><span class="cv"><b class="tnum">'+money(r.value)+'</b><small>'+p+'%</small></span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="color:var(--ink-4)"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2"/></svg></div>'; }
       else { html+='<button class="catline" data-cat="'+escapeHtml(r.cat)+'" data-i="'+i+'" aria-expanded="false"><span class="catdisc" style="background:'+col+';width:10px;height:10px;border-radius:3px;flex:none"></span><span class="cn"><span class="t">'+escapeHtml(r.cat)+'</span><span class="bar"><i style="width:'+p+'%;background:'+col+'"></i></span></span><span class="cv"><b class="tnum">'+money(r.value)+'</b><small'+(vital?' style="color:var(--acc);font-weight:700"':'')+'>'+p+'%</small></span><svg class="cchev" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="drill" id="drill-'+i+'" hidden></div>'; } });
-    if(rows.length>CATN){ html+='<div class="morebar morebar-sep">'+(showAll?('<span class="mbcount">Showing all '+rows.length+'</span><button class="mbmore" id="catmore">Show top '+CATN+' '+CHEV_UP+'</button>'):('<span class="mbcount">Showing '+CATN+' of '+rows.length+'</span><button class="mbmore" id="catmore">Show '+(rows.length-CATN)+' more '+CHEV_DN+'</button>'))+'</div>'; }
+    if(rows.length>CATN){ html+='<div class="morebar morebar-sep">'+(showAll?('<span class="mbcount">Showing all '+rows.length+'</span><span class="mbdiv"></span><button class="mbmore" id="catmore">Show top '+CATN+' '+CHEV_UP+'</button>'):('<span class="mbcount">Showing '+CATN+' of '+rows.length+'</span><span class="mbdiv"></span><button class="mbmore" id="catmore">Show '+(rows.length-CATN)+' more '+CHEV_DN+'</button>'))+'</div>'; }
     lbox.innerHTML=html;
     if(animate!==false&&!REDUCE){ var bars=lbox.querySelectorAll(".cn .bar i"); bars.forEach(function(bi){ var w=bi.style.width; bi.style.width="0%"; requestAnimationFrame(function(){ bi.style.width=w; }); }); }
     var mb=el("catmore"); if(mb) mb.addEventListener("click",function(){ catExpanded=!catExpanded; renderCategory(side,false); });
@@ -1527,7 +1528,7 @@
   function renderTxnMore(side,total,lim){ var box=el("txnmore"); if(!box)return; if(total<=15){ box.hidden=true; box.innerHTML=""; return; } box.hidden=false; var rem=total-lim,action;
     if(rem>0){ var step=Math.min(txnStep,rem); action='<button class="mbmore" data-add="'+step+'">Show '+step+' more '+CHEV_DN+'</button>'; }
     else { action='<button class="mbmore" data-collapse="1">Show less '+CHEV_UP+'</button>'; }
-    box.innerHTML='<div class="morebar morebar-sep"><span class="mbcount">Showing '+lim+' of '+total+'</span>'+action+'</div>';
+    box.innerHTML='<div class="morebar morebar-sep"><span class="mbcount">Showing '+lim+' of '+total+'</span><span class="mbdiv"></span>'+action+'</div>';
     var ab=box.querySelector("[data-add]"); if(ab)ab.addEventListener("click",function(){ txnLimit=Math.min(total,lim+(+ab.getAttribute("data-add"))); txnStep=Math.min(400,txnStep*2); renderTxns(side,false); });
     var cb=box.querySelector("[data-collapse]"); if(cb)cb.addEventListener("click",function(){ txnLimit=15; txnStep=20; renderTxns(side,false); try{ el("txnhead").scrollIntoView({block:"start",behavior:REDUCE?"auto":"smooth"}); }catch(e){} });
   }
@@ -1738,7 +1739,7 @@
       '<p class="trrate">'+tripDateLbl(t)+' · <span class="trbadge '+st+'" style="display:inline-block">'+g+'</span>'+(t.cur!==home?'<br>1 <b>'+escapeHtml(t.cur)+'</b> = <b>'+fmtCur(t.rate,home)+'</b> (fixed)':'')+'</p>'+
       '<div class="tgrouplab">Where it went</div>'+catHtml+
       '<div class="tgrouplab">Transactions</div><div class="rows">'+txnHtml+'</div>'+
-      (txns.length>shown.length?'<div class="morebar"><span class="mbcount">Showing '+shown.length+' of '+txns.length+'</span><button class="mbmore" id="trip-more">Show '+Math.min(20,txns.length-shown.length)+' more <svg viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>':'')+
+      (txns.length>shown.length?'<div class="morebar morebar-sep"><span class="mbcount">Showing '+shown.length+' of '+txns.length+'</span><span class="mbdiv"></span><button class="mbmore" id="trip-more">Show '+Math.min(20,txns.length-shown.length)+' more <svg viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>':'')+
       '<div class="crow" style="margin-top:20px"><button class="btn ghost" id="trip-inburn">See in Burn</button><button class="btn" id="trip-edit">Edit trip</button></div>';
     var mb=el("trip-more"); if(mb)mb.addEventListener("click",function(){ _tripTxnLim+=20; renderTripDet(); });
     el("tripdetbody").querySelectorAll("[data-ttid]").forEach(function(b){ b.addEventListener("click",function(){ var id=b.getAttribute("data-ttid"); showTripDet(false); setTimeout(function(){ openEditExpense(id); },190); }); });
